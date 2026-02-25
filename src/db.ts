@@ -90,13 +90,6 @@ export type WorldState = {
 function nowTs() { return Date.now(); }
 function uid(prefix="id") { return `${prefix}_${nowTs()}_${Math.random().toString(16).slice(2)}`; }
 
-function promisify<T=any>(req: IDBRequest<T>) {
-  return new Promise<T>((resolve, reject) => {
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
-}
-
 export function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
