@@ -7,6 +7,11 @@ import {
   appendLog,
   listLogs,
   makeEmptyPlayer,
+  getMeta,
+  setMeta,
+  countNPCPublic,
+  importNPCPublic,
+  importNPCSecret,
   type SaveRow,
   type LogRow,
 } from "./db";
