@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -20,19 +20,30 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: true
 
+      # ✅ 先不要開 npm cache，否則沒有 lock 會直接 fail
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
 
-      - name: Ensure package-lock.json exists (bootstrap, no commit)
+      # ✅ 只在 lock 不存在時生成，並 commit 回 repo（一次性）
+      - name: Bootstrap package-lock.json (commit once)
         run: |
           if [ ! -f package-lock.json ]; then
             npm install --package-lock-only --no-audit --no-fund
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add package-lock.json
+            git commit -m "chore: add package-lock.json"
+            git push origin HEAD:main
+          else
+            echo "package-lock.json already exists"
           fi
 
+      # ✅ 有 lock 後就能 ci
       - name: Install
         run: npm ci --no-audit --no-fund
 
