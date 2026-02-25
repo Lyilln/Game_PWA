@@ -1,0 +1,98 @@
+[
+  {
+    "id": "m01",
+    "codename": "Moth",
+    "firstMeetHint": "嘴賤、行動快，說話像刀背敲玻璃。",
+    "archetypeKey": "snark_reliable",
+    "tags": ["嘴賤但可靠", "行動派", "慢熟"],
+    "gatePreview": "他只信你做的，不信你說的。"
+  },
+  {
+    "id": "m02",
+    "codename": "Silk",
+    "firstMeetHint": "溫柔得太乾淨，乾淨到像是故意。",
+    "archetypeKey": "soft_dangerous",
+    "tags": ["表面溫柔其實危險", "高禮貌", "難讀"],
+    "gatePreview": "你要先證明你不是弱點。"
+  },
+  {
+    "id": "m03",
+    "codename": "Switch",
+    "firstMeetHint": "工程腦，講話像在報告，眼神卻會停在你手上的傷口。",
+    "archetypeKey": "engineer_cold",
+    "tags": ["高智商工程型", "冷靜", "界線感強"],
+    "gatePreview": "他討厭情緒勒索，喜歡明確交換。"
+  },
+  {
+    "id": "m04",
+    "codename": "Medic",
+    "firstMeetHint": "急救動作乾淨俐落，表情卻像在把自己鎖起來。",
+    "archetypeKey": "medic_austere",
+    "tags": ["醫療型", "克制", "很難親近"],
+    "gatePreview": "你越靠近，他越退。除非你撐住。"
+  },
+  {
+    "id": "m05",
+    "codename": "Anchor",
+    "firstMeetHint": "哥哥型氣場，但不寵溺；他會把你推回安全線。",
+    "archetypeKey": "protector_bro",
+    "tags": ["哥哥型保護慾", "原則", "慢熱"],
+    "gatePreview": "他會先保護你，再決定要不要喜歡你。"
+  },
+  {
+    "id": "m06",
+    "codename": "Ledger",
+    "firstMeetHint": "一身帳本味，笑起來像在算利息。",
+    "archetypeKey": "broker_info",
+    "tags": ["情報販子", "交易腦", "道德灰"],
+    "gatePreview": "要他的真心，你得先付出代價。"
+  },
+  {
+    "id": "m07",
+    "codename": "Warden",
+    "firstMeetHint": "規矩比人命重要的那種人——至少表面是。",
+    "archetypeKey": "military_order",
+    "tags": ["軍事據點", "高標準", "很難攻略"],
+    "gatePreview": "他要你先守規矩，才承認你有例外。"
+  },
+  {
+    "id": "m08",
+    "codename": "Cinder",
+    "firstMeetHint": "幫派出身的狠勁藏在輕佻裡，像火星在衣袖。",
+    "archetypeKey": "raider_charm",
+    "tags": ["掠奪者幫派", "危險曖昧", "不油"],
+    "gatePreview": "他只尊重敢下注的人。"
+  },
+  {
+    "id": "m09",
+    "codename": "Quiet",
+    "firstMeetHint": "話少到近乎無禮，但每次你回頭，他都在。",
+    "archetypeKey": "silent_operator",
+    "tags": ["沉默行動派", "觀察力強", "難哄"],
+    "gatePreview": "他不吃甜言蜜語，只吃你一次次站出來。"
+  },
+  {
+    "id": "m10",
+    "codename": "Crown",
+    "firstMeetHint": "領袖型壓迫感，語氣不凶，但你會下意識站直。",
+    "archetypeKey": "leader_taboo",
+    "tags": ["基地領袖型", "權力", "禁忌感"],
+    "gatePreview": "他不談愛，他談風險與後果。"
+  },
+  {
+    "id": "m11",
+    "codename": "Hound",
+    "firstMeetHint": "看起來像狗狗系，笑起來很乖——眼底卻不乖。",
+    "archetypeKey": "puppy_dark",
+    "tags": ["狗狗系", "黑化潛質", "不幼稚"],
+    "gatePreview": "你得先分得清他在撒嬌還是在試探。"
+  },
+  {
+    "id": "m12",
+    "codename": "Null",
+    "firstMeetHint": "地下設施的人，講話像在避開監聽。",
+    "archetypeKey": "underground_secret",
+    "tags": ["地下設施派", "秘密", "高戒心"],
+    "gatePreview": "他需要你先證明你不會把他交出去。"
+  }
+]
