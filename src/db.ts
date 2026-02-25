@@ -272,3 +272,61 @@ export async function listLogs(saveId: string, limit=40): Promise<LogRow[]> {
   db.close();
   return sliced;
 }
+
+// ===== NPC Import / Read =====
+function promisify<T=any>(req: IDBRequest<T>) {
+  return new Promise<T>((resolve, reject) => {
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+export async function countNPCPublic(): Promise<number> {
+  const db = await openDB();
+  const tx = db.transaction([STORES.npc_public], "readonly");
+  const os = tx.objectStore(STORES.npc_public);
+  const n = await promisify<number>(os.count());
+  db.close();
+  return n || 0;
+}
+
+export async function importNPCPublic(list: any[]) {
+  if (!Array.isArray(list)) throw new Error("npc_public must be an array");
+  const db = await openDB();
+  const tx = db.transaction([STORES.npc_public], "readwrite");
+  const os = tx.objectStore(STORES.npc_public);
+  for (const item of list) {
+    if (!item?.id) continue;
+    await promisify(os.put(item));
+  }
+  db.close();
+}
+
+export async function importNPCSecret(list: any[]) {
+  if (!Array.isArray(list)) throw new Error("npc_secret must be an array");
+  const db = await openDB();
+  const tx = db.transaction([STORES.npc_secret], "readwrite");
+  const os = tx.objectStore(STORES.npc_secret);
+  for (const item of list) {
+    if (!item?.id) continue;
+    await promisify(os.put(item));
+  }
+  db.close();
+}
+
+export async function getNPCPublic(id: string) {
+  const db = await openDB();
+  const tx = db.transaction([STORES.npc_public], "readonly");
+  const row = await promisify<any>(tx.objectStore(STORES.npc_public).get(id));
+  db.close();
+  return row || null;
+}
+
+export async function listNPCPublic(limit = 50) {
+  const db = await openDB();
+  const tx = db.transaction([STORES.npc_public], "readonly");
+  const os = tx.objectStore(STORES.npc_public);
+  const all = await promisify<any[]>(os.getAll());
+  db.close();
+  return all.slice(0, limit);
+}
