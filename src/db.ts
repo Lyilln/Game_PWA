@@ -6,6 +6,8 @@ export const STORES = {
   saves: "saves",
   logs: "logs",
   world: "world",
+  npc_public: "npc_public",
+  npc_secret: "npc_secret",
 };
 
 export type SaveRow = {
