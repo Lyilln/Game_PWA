@@ -109,8 +109,23 @@ export default function App() {
   }
 
   useEffect(() => {
-    refreshSaves();
-  }, []);
+  refreshSaves();
+  (async () => {
+    // 男人庫只匯入一次：不重複灌資料
+    const seeded = await getMeta("npc_seed_v1");
+    if (seeded) return;
+
+    const existing = await countNPCPublic();
+    if (existing > 0) {
+      await setMeta("npc_seed_v1", true);
+      return;
+    }
+
+    await importNPCPublic(npcPublic as any[]);
+    await importNPCSecret(npcSecret as any[]);
+    await setMeta("npc_seed_v1", true);
+  })();
+}, []);
 
   async function onContinue() {
     if (!saves[0]) return;
