@@ -323,3 +323,113 @@ export async function listNPCPublic(limit = 50) {
   db.close();
   return all.slice(0, limit);
 }
+
+// ===== Saves: rename / delete / duplicate =====
+
+function uid(prefix="id"){ 
+  return `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2)}`; 
+}
+
+export async function renameSave(saveId: string, newTitle: string) {
+  const title = (newTitle || "").trim();
+  if (!title) return;
+
+  return updateSave(saveId, (s) => {
+    s.title = title;
+  });
+}
+
+export async function deleteSave(saveId: string) {
+  const db = await openDB();
+  const tx = db.transaction([STORES.saves, STORES.logs, STORES.world], "readwrite");
+
+  // 刪存檔
+  await (new Promise<void>((resolve, reject) => {
+    const req = tx.objectStore(STORES.saves).delete(saveId);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  }));
+
+  // 刪世界狀態
+  await (new Promise<void>((resolve, reject) => {
+    const req = tx.objectStore(STORES.world).delete(saveId);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  }));
+
+  // 刪該存檔所有 logs
+  const logStore = tx.objectStore(STORES.logs);
+  const idx = logStore.index("by_saveId");
+  const logs = await (new Promise<any[]>((resolve, reject) => {
+    const req = idx.getAll(IDBKeyRange.only(saveId));
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = () => reject(req.error);
+  }));
+
+  for (const l of logs) {
+    await (new Promise<void>((resolve, reject) => {
+      const req = logStore.delete(l.logId);
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
+    }));
+  }
+
+  db.close();
+}
+
+export async function duplicateSave(sourceSaveId: string, newTitle?: string) {
+  const src = await loadSave(sourceSaveId);
+  if (!src) throw new Error("Save not found");
+
+  const newSaveId = uid("save");
+  const ts = Date.now();
+
+  const copy: SaveRow = {
+    ...structuredClone(src),
+    saveId: newSaveId,
+    title: (newTitle || `${src.title}（複製）`).trim(),
+    createdAt: ts,
+    updatedAt: ts,
+  };
+
+  // world store 也要複製一份
+  const db = await openDB();
+  const tx = db.transaction([STORES.saves, STORES.world, STORES.logs], "readwrite");
+
+  // saves
+  await (new Promise<void>((resolve, reject) => {
+    const req = tx.objectStore(STORES.saves).add(copy);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  }));
+
+  await (new Promise<void>((resolve, reject) => {
+    const req = tx.objectStore(STORES.world).put({ saveId: newSaveId, ...copy.world });
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  }));
+
+  // logs：把原本 logs 複製成新 saveId
+  const logStore = tx.objectStore(STORES.logs);
+  const idx = logStore.index("by_saveId");
+  const srcLogs = await (new Promise<any[]>((resolve, reject) => {
+    const req = idx.getAll(IDBKeyRange.only(sourceSaveId));
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = () => reject(req.error);
+  }));
+
+  for (const l of srcLogs) {
+    const newLog = structuredClone(l);
+    newLog.logId = uid("log");
+    newLog.saveId = newSaveId;
+    newLog.ts = ts + Math.floor(Math.random() * 50);
+    await (new Promise<void>((resolve, reject) => {
+      const req = logStore.add(newLog);
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
+    }));
+  }
+
+  db.close();
+  return copy;
+}
