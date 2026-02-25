@@ -12,6 +12,9 @@ import {
   countNPCPublic,
   importNPCPublic,
   importNPCSecret,
+  renameSave,
+  deleteSave,
+  duplicateSave,
   type SaveRow,
   type LogRow,
 } from "./db";
