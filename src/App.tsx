@@ -9,7 +9,6 @@ import {
   makeEmptyPlayer,
   type SaveRow,
   type LogRow,
-  type PlayerProfile,
 } from "./db";
 import {
   generateWindLines,
@@ -21,13 +20,36 @@ import {
 
 type Mode = "cover" | "setup" | "play";
 type SecKey = "base" | "persona" | "panel" | "relations" | "reputation" | "achievements";
+type DrawerKey = "profile" | "recap" | "saves" | null;
 
+function IconHome() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="currentColor" d="M12 3l9 8h-3v10h-5v-6H11v6H6V11H3l9-8z"/>
+    </svg>
+  );
+}
+function IconFolder() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="currentColor" d="M10 4l2 2h8a2 2 0 0 1 2 2v10a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V6a2 2 0 0 1 2-2h6z"/>
+    </svg>
+  );
+}
+function IconClock() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="currentColor" d="M12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2Zm1 5h-2v6l5 3l1-1.73l-4-2.27V7Z"/>
+    </svg>
+  );
+}
 function KeyIcon() {
+  // 舊式鑰匙 / skeleton key（不是 emoji）
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
       <path
         fill="currentColor"
-        d="M14.5 3a6.5 6.5 0 0 0-5.82 9.4L3 18.08V21h2.92l1.3-1.3H9v-1.78h1.78v-1.78h1.78l1.62-1.62A6.5 6.5 0 0 0 14.5 3Zm0 2.2a4.3 4.3 0 1 1 0 8.6a4.3 4.3 0 0 1 0-8.6Zm1.2 2.1a1.1 1.1 0 1 0 0 2.2a1.1 1.1 0 0 0 0-2.2Z"
+        d="M8.75 14.25a5.5 5.5 0 1 1 5.24-7.18l7.76 7.76V17h-2v2h-2v2h-2.25l-4.03-4.03a5.49 5.49 0 0 1-2.72.78Zm0-2a3.5 3.5 0 1 0 0-7a3.5 3.5 0 0 0 0 7Zm0-4.1a.6.6 0 1 1 0 1.2a.6.6 0 0 1 0-1.2Z"
       />
     </svg>
   );
@@ -35,11 +57,14 @@ function KeyIcon() {
 
 export default function App() {
   const [mode, setMode] = useState<Mode>("cover");
+  const [drawer, setDrawer] = useState<DrawerKey>(null);
+
   const [saves, setSaves] = useState<SaveRow[]>([]);
   const [curSave, setCurSave] = useState<SaveRow | null>(null);
   const [logs, setLogs] = useState<LogRow[]>([]);
   const [input, setInput] = useState("");
 
+  // Setup sections open
   const [secOpen, setSecOpen] = useState<Record<SecKey, boolean>>({
     base: true,
     persona: true,
@@ -49,7 +74,7 @@ export default function App() {
     achievements: true,
   });
 
-  // Setup 表單（B：半手填）
+  // Setup form (B 半手填)
   const [fName, setFName] = useState("");
   const [fCodename, setFCodename] = useState("");
   const [fNickname, setFNickname] = useState("");
@@ -70,7 +95,7 @@ export default function App() {
     const s = await loadSave(saveId);
     if (!s) return;
     setCurSave(s);
-    const l = await listLogs(saveId, 60);
+    const l = await listLogs(saveId, 80);
     setLogs(l);
     if (goPlay) setMode("play");
   }
@@ -107,7 +132,6 @@ export default function App() {
 
   function genNoSpoil() {
     if (!fTalent.trim()) setFTalent("適應型天賦");
-    // 異能允許空：代表無異能
     if (!fTags.trim()) setFTags("嘴硬心軟、護短、很會裝沒事");
     if (!fPrinciples.trim()) setFPrinciples("不欠人情、不賣隊友");
   }
@@ -125,14 +149,13 @@ export default function App() {
     p.personalityTags = splitTags(fTags);
     p.principles = splitTags(fPrinciples);
 
-    // 動態欄位起點（會隨遊戲更新）
+    // dynamic placeholders
     p.identity = "未知身分（系統將更新）";
     p.currentPersonalityTilt = "尚未形成（系統將更新）";
     p.reputationTags = [];
     p.publicOpinion = "尚無風評（系統將更新）";
     p.achievements = [];
 
-    // 展示用面板：不拉軸、不要求你現在填很細
     p.panel.overall = 10;
     p.panel.survival = 10;
     p.panel.combat = 10;
@@ -185,6 +208,20 @@ export default function App() {
     await openSave(updated.saveId, true);
   }
 
+  const latestNarrative = useMemo(() => {
+    for (let i = logs.length - 1; i >= 0; i--) {
+      if (logs[i].kind === "narrative") return logs[i];
+    }
+    return null;
+  }, [logs]);
+
+  const latestWind = useMemo(() => {
+    for (let i = logs.length - 1; i >= 0; i--) {
+      if (logs[i].kind === "wind") return logs[i];
+    }
+    return null;
+  }, [logs]);
+
   const lastMajor = useMemo(() => {
     for (let i = logs.length - 1; i >= 0; i--) {
       if (logs[i].kind === "major_choice") return logs[i];
@@ -200,6 +237,10 @@ export default function App() {
     await openSave(curSave.saveId, true);
   }
 
+  function closeDrawer() {
+    setDrawer(null);
+  }
+
   return (
     <div className="app">
       <div className="shell">
@@ -210,49 +251,44 @@ export default function App() {
                 <div className="brandTitle">Game_PWA</div>
                 <div className="brandSub">末世戀愛生存互動式小說 · 橙光式運作 · IndexedDB 存檔</div>
               </div>
-              <button className="iconBtn" aria-label="設定" title="設定（之後做抽屜）">
-                ⚙︎
-              </button>
+              <div className="iconRow">
+                <button className="iconBtn" aria-label="檔案櫃" title="檔案櫃" onClick={() => setDrawer("saves")}>
+                  <IconFolder />
+                </button>
+              </div>
             </div>
 
-            <div className="stack">
-              <div className="glassCard">
-                <div className="cardPad">
-                  <div className="cardTitle">進入世界</div>
-                  <div className="cardText">
-                    每段正文後，輸入「我做了什麼」，世界會記住。<br />
-                    自然語言為主；可選指令用來提高解析準度（不強迫）。
-                  </div>
-
-                  <div className="btnRow">
-                    <button className="btnPill btnPillPrimary" disabled={!canContinue} onClick={onContinue}>
-                      繼續
-                    </button>
-                    <button className="btnPill" onClick={onNew}>
-                      新開始
-                    </button>
-                    <button className="btnPill" disabled={!canContinue} onClick={onLoadMostRecent}>
-                      讀檔
-                    </button>
-                  </div>
-
-                  <div className="miniBadgeRow">
-                    <span className="badge">自然語言為主</span>
-                    <span className="badge">可選指令</span>
-                    <span className="badge">4–7 段關鍵時刻</span>
-                    <span className="badge">關係混合制</span>
-                    <span className="badge">異能世界觀</span>
-                  </div>
+            <div className="glassCard">
+              <div className="cardPad">
+                <div className="cardTitle">進入世界</div>
+                <div className="cardText">
+                  每段正文後輸入「我做了什麼」，世界會記住。<br />
+                  自然語言為主；可選指令提高解析準度（不強迫）。
                 </div>
-              </div>
 
-              <div className="glassCard">
-                <div className="cardPad">
-                  <div className="cardTitle">小提醒</div>
-                  <div className="cardText">
-                    你要後宮/海后，多存檔會是核心玩法。<br />
-                    我們之後會做「檔案櫃抽屜」：複製存檔、命名、刪除。
-                  </div>
+                <div className="btnRow">
+                  <button className="btnPill btnPillPrimary" disabled={!canContinue} onClick={onContinue}>
+                    繼續
+                  </button>
+                  <button className="btnPill" onClick={onNew}>
+                    新開始
+                  </button>
+                  <button className="btnPill" disabled={!canContinue} onClick={onLoadMostRecent}>
+                    讀檔
+                  </button>
+                </div>
+
+                <div className="badgeRow">
+                  <span className="badge">自然語言為主</span>
+                  <span className="badge">可選指令</span>
+                  <span className="badge">4–7 段關鍵時刻</span>
+                  <span className="badge">關係混合制</span>
+                  <span className="badge">異能世界觀</span>
+                </div>
+
+                <div className="line" />
+                <div className="cardText">
+                  男人 NPC 資料庫：<b>尚未接入</b>（目前沒有 npc_public / npc_secret，也沒有匯入流程）
                 </div>
               </div>
             </div>
@@ -266,231 +302,120 @@ export default function App() {
                 <div className="brandTitle">主控建立</div>
                 <div className="brandSub">同頁、不分頁｜區塊可收合｜預設全展開｜B：半手填</div>
               </div>
-              <button className="iconBtn" aria-label="返回" title="返回" onClick={() => setMode("cover")}>
-                ←
-              </button>
-            </div>
-
-            {/* ① 基礎信息 */}
-            <div className="sec">
-              <div className="secHead">
-                <div className="secTitle">① 基礎信息</div>
-                <div className="secRight">
-                  <span className="secHint">{secOpen.base ? "展開" : "收合"}</span>
-                  <button className="keyBtn" onClick={() => toggleSec("base")} aria-label="切換展開收合">
-                    <KeyIcon />
-                  </button>
-                </div>
+              <div className="iconRow">
+                <button className="iconBtn" aria-label="返回封面" title="返回封面" onClick={() => setMode("cover")}>
+                  <IconHome />
+                </button>
               </div>
-              {secOpen.base && (
-                <div className="secBody">
-                  <div className="kv2">
-                    <label>名字</label>
-                    <input value={fName} onChange={(e) => setFName(e.target.value)} />
-                  </div>
-                  <div className="kv2">
-                    <label>代號/顯示名</label>
-                    <input value={fCodename} onChange={(e) => setFCodename(e.target.value)} />
-                  </div>
-                  <div className="kv2">
-                    <label>暱稱</label>
-                    <input value={fNickname} onChange={(e) => setFNickname(e.target.value)} />
-                  </div>
-                  <div className="kv2">
-                    <label>年齡</label>
-                    <input
-                      type="number"
-                      value={fAge}
-                      onChange={(e) => setFAge(e.target.value === "" ? "" : Number(e.target.value))}
-                    />
-                  </div>
-                  <div className="kv2">
-                    <label>性別</label>
-                    <div className="pillDyn">女（鎖定）</div>
-                  </div>
-                  <div className="kv2">
-                    <label>身分（動態更新）</label>
-                    <div className="pillDyn">未知身分（遊戲將更新）</div>
-                  </div>
-                  <div className="kv2">
-                    <label>天賦</label>
-                    <input value={fTalent} onChange={(e) => setFTalent(e.target.value)} />
-                  </div>
-                  <div className="kv2">
-                    <label>異能（可空）</label>
-                    <input value={fAbility} onChange={(e) => setFAbility(e.target.value)} />
-                  </div>
-                </div>
-              )}
             </div>
 
-            {/* ② 性格 */}
-            <div className="sec">
-              <div className="secHead">
-                <div className="secTitle">② 性格</div>
-                <div className="secRight">
-                  <span className="secHint">{secOpen.persona ? "展開" : "收合"}</span>
-                  <button className="keyBtn" onClick={() => toggleSec("persona")} aria-label="切換展開收合">
-                    <KeyIcon />
-                  </button>
-                </div>
-              </div>
-              {secOpen.persona && (
-                <div className="secBody">
-                  <div className="kv2">
-                    <label>性格（標籤/自寫）</label>
-                    <input
-                      placeholder="用逗號分隔，例如：嘴硬心軟、護短"
-                      value={fTags}
-                      onChange={(e) => setFTags(e.target.value)}
-                    />
-                  </div>
-                  <div className="kv2">
-                    <label>原則/底線</label>
-                    <input
-                      placeholder="用逗號分隔，例如：不欠人情、不賣隊友"
-                      value={fPrinciples}
-                      onChange={(e) => setFPrinciples(e.target.value)}
-                    />
-                  </div>
-                  <div className="kv2">
-                    <label>當前性格偏向（動態更新）</label>
-                    <div className="pillDyn">尚未形成（遊戲將更新）</div>
-                  </div>
-                </div>
-              )}
-            </div>
+            <Section
+              title="① 基礎信息"
+              open={secOpen.base}
+              onToggle={() => toggleSec("base")}
+            >
+              <KV label="名字">
+                <input value={fName} onChange={(e) => setFName(e.target.value)} />
+              </KV>
+              <KV label="代號/顯示名">
+                <input value={fCodename} onChange={(e) => setFCodename(e.target.value)} />
+              </KV>
+              <KV label="暱稱">
+                <input value={fNickname} onChange={(e) => setFNickname(e.target.value)} />
+              </KV>
+              <KV label="年齡">
+                <input
+                  type="number"
+                  value={fAge}
+                  onChange={(e) => setFAge(e.target.value === "" ? "" : Number(e.target.value))}
+                />
+              </KV>
+              <KV label="性別">
+                <div className="pillDyn">女（鎖定）</div>
+              </KV>
+              <KV label="身分（動態更新）">
+                <div className="pillDyn">未知身分（遊戲將更新）</div>
+              </KV>
+              <KV label="天賦">
+                <input value={fTalent} onChange={(e) => setFTalent(e.target.value)} />
+              </KV>
+              <KV label="異能（可空）">
+                <input value={fAbility} onChange={(e) => setFAbility(e.target.value)} />
+              </KV>
+            </Section>
 
-            {/* ③ 個人數值面板 */}
-            <div className="sec">
-              <div className="secHead">
-                <div className="secTitle">③ 個人數值面板</div>
-                <div className="secRight">
-                  <span className="secHint">{secOpen.panel ? "展開" : "收合"}</span>
-                  <button className="keyBtn" onClick={() => toggleSec("panel")} aria-label="切換展開收合">
-                    <KeyIcon />
-                  </button>
-                </div>
-              </div>
-              {secOpen.panel && (
-                <div className="secBody">
-                  <div className="kv2">
-                    <label>個人總評</label>
-                    <div className="pillDyn">（遊戲將更新）</div>
-                  </div>
-                  <div className="kv2">
-                    <label>生存值</label>
-                    <div className="pillDyn">（遊戲將更新）</div>
-                  </div>
-                  <div className="kv2">
-                    <label>戰鬥值</label>
-                    <div className="pillDyn">（遊戲將更新）</div>
-                  </div>
-                  <div className="kv2">
-                    <label>智略值</label>
-                    <div className="pillDyn">（遊戲將更新）</div>
-                  </div>
-                  <div className="kv2">
-                    <label>魅力值</label>
-                    <div className="pillDyn">（遊戲將更新）</div>
-                  </div>
-                  <div className="kv2">
-                    <label>異能值</label>
-                    <div className="pillDyn">（遊戲將更新）</div>
-                  </div>
-                  <div className="kv2">
-                    <label>壓力/崩潰值</label>
-                    <div className="pillDyn">（遊戲將更新）</div>
-                  </div>
-                </div>
-              )}
-            </div>
+            <Section
+              title="② 性格"
+              open={secOpen.persona}
+              onToggle={() => toggleSec("persona")}
+            >
+              <KV label="性格（標籤/自寫）">
+                <input
+                  placeholder="用逗號分隔，例如：嘴硬心軟、護短"
+                  value={fTags}
+                  onChange={(e) => setFTags(e.target.value)}
+                />
+              </KV>
+              <KV label="原則/底線">
+                <input
+                  placeholder="用逗號分隔，例如：不欠人情、不賣隊友"
+                  value={fPrinciples}
+                  onChange={(e) => setFPrinciples(e.target.value)}
+                />
+              </KV>
+              <KV label="當前性格偏向（動態更新）">
+                <div className="pillDyn">尚未形成（遊戲將更新）</div>
+              </KV>
+            </Section>
 
-            {/* ④ 關係 */}
-            <div className="sec">
-              <div className="secHead">
-                <div className="secTitle">④ 關係</div>
-                <div className="secRight">
-                  <span className="secHint">{secOpen.relations ? "展開" : "收合"}</span>
-                  <button className="keyBtn" onClick={() => toggleSec("relations")} aria-label="切換展開收合">
-                    <KeyIcon />
-                  </button>
-                </div>
-              </div>
-              {secOpen.relations && (
-                <div className="secBody">
-                  <div className="kv2">
-                    <label>曖昧中人數（動態）</label>
-                    <div className="pillDyn">0（遊戲將更新）</div>
-                  </div>
-                  <div className="kv2">
-                    <label>已定義關係（可多個）</label>
-                    <div className="pillDyn">無（遊戲將更新）</div>
-                  </div>
-                </div>
-              )}
-            </div>
+            <Section
+              title="③ 個人數值面板"
+              open={secOpen.panel}
+              onToggle={() => toggleSec("panel")}
+            >
+              <KV label="個人總評"><div className="pillDyn">（遊戲將更新）</div></KV>
+              <KV label="生存值"><div className="pillDyn">（遊戲將更新）</div></KV>
+              <KV label="戰鬥值"><div className="pillDyn">（遊戲將更新）</div></KV>
+              <KV label="智略值"><div className="pillDyn">（遊戲將更新）</div></KV>
+              <KV label="魅力值"><div className="pillDyn">（遊戲將更新）</div></KV>
+              <KV label="異能值"><div className="pillDyn">（遊戲將更新）</div></KV>
+              <KV label="壓力/崩潰值"><div className="pillDyn">（遊戲將更新）</div></KV>
+            </Section>
 
-            {/* ⑤ 名聲 */}
-            <div className="sec">
-              <div className="secHead">
-                <div className="secTitle">⑤ 名聲</div>
-                <div className="secRight">
-                  <span className="secHint">{secOpen.reputation ? "展開" : "收合"}</span>
-                  <button className="keyBtn" onClick={() => toggleSec("reputation")} aria-label="切換展開收合">
-                    <KeyIcon />
-                  </button>
-                </div>
-              </div>
-              {secOpen.reputation && (
-                <div className="secBody">
-                  <div className="kv2">
-                    <label>名聲標籤（動態更新）</label>
-                    <div className="pillDyn">（遊戲將更新）</div>
-                  </div>
-                  <div className="kv2">
-                    <label>風評一句話（動態更新）</label>
-                    <div className="pillDyn">尚無風評（遊戲將更新）</div>
-                  </div>
-                </div>
-              )}
-            </div>
+            <Section
+              title="④ 關係"
+              open={secOpen.relations}
+              onToggle={() => toggleSec("relations")}
+            >
+              <KV label="曖昧中人數（動態）"><div className="pillDyn">0（遊戲將更新）</div></KV>
+              <KV label="已定義關係（可多個）"><div className="pillDyn">無（遊戲將更新）</div></KV>
+            </Section>
 
-            {/* ⑥ 成就 */}
-            <div className="sec">
-              <div className="secHead">
-                <div className="secTitle">⑥ 成就</div>
-                <div className="secRight">
-                  <span className="secHint">{secOpen.achievements ? "展開" : "收合"}</span>
-                  <button className="keyBtn" onClick={() => toggleSec("achievements")} aria-label="切換展開收合">
-                    <KeyIcon />
-                  </button>
-                </div>
-              </div>
-              {secOpen.achievements && (
-                <div className="secBody">
-                  <div className="kv2">
-                    <label>成就（動態更新）</label>
-                    <div className="pillDyn">（遊戲將更新）</div>
-                  </div>
-                </div>
-              )}
-            </div>
+            <Section
+              title="⑤ 名聲"
+              open={secOpen.reputation}
+              onToggle={() => toggleSec("reputation")}
+            >
+              <KV label="名聲標籤（動態更新）"><div className="pillDyn">（遊戲將更新）</div></KV>
+              <KV label="風評一句話（動態更新）"><div className="pillDyn">尚無風評（遊戲將更新）</div></KV>
+            </Section>
 
-            <div style={{ marginTop: 14 }} className="glassCard">
+            <Section
+              title="⑥ 成就"
+              open={secOpen.achievements}
+              onToggle={() => toggleSec("achievements")}
+            >
+              <KV label="成就（動態更新）"><div className="pillDyn">（遊戲將更新）</div></KV>
+            </Section>
+
+            <div className="glassCard" style={{ marginTop: 14 }}>
               <div className="cardPad">
                 <div className="cardTitle">操作</div>
-                <div className="cardText">你填關鍵欄位，其它可以按「幫我生成（不劇透）」補齊。</div>
+                <div className="cardText">你填關鍵欄位，其它可按「幫我生成（不劇透）」補齊。</div>
                 <div className="btnRow">
-                  <button className="btnPill" onClick={genNoSpoil}>
-                    幫我生成（不劇透）
-                  </button>
-                  <button className="btnPill btnPillPrimary" onClick={startLife}>
-                    開始人生
-                  </button>
-                  <button className="btnPill" onClick={() => setMode("cover")}>
-                    回封面
-                  </button>
+                  <button className="btnPill" onClick={genNoSpoil}>幫我生成（不劇透）</button>
+                  <button className="btnPill btnPillPrimary" onClick={startLife}>開始人生</button>
+                  <button className="btnPill" onClick={() => setMode("cover")}>回封面</button>
                 </div>
               </div>
             </div>
@@ -498,87 +423,253 @@ export default function App() {
         )}
 
         {mode === "play" && curSave && (
-          <div className="bgStage">
-            <div className="topBar">
-              <div className="brand">
-                <div className="brandTitle">正文</div>
-                <div className="brandSub">
-                  存檔：{curSave.title}｜段落：{curSave.progress.segment}
+          <div className="playStage">
+            <div className="playBG" />
+            <div className="playContent">
+              <div className="hud">
+                <div className="hudLeft">
+                  <div className="hudTitle">{curSave.title}</div>
+                  <div className="hudSub">Day {curSave.progress.day} · 段落 {curSave.progress.segment}</div>
                 </div>
-              </div>
-              <button className="iconBtn" aria-label="回封面" title="回封面" onClick={() => setMode("cover")}>
-                ⌂
-              </button>
-            </div>
-
-            <div className="glassCard">
-              <div className="cardPad">
-                {renderStory(logs)}
-                {lastMajor && isLastLog(lastMajor, logs) && (
-                  <div style={{ marginTop: 14 }}>
-                    <div className="cardTitle">關鍵時刻</div>
-                    <div style={{ marginTop: 10 }}>
-                      {(lastMajor.data?.options || []).map((opt: string, i: number) => (
-                        <button key={i} className="btnPill" style={{ width: "100%", marginBottom: 10 }} onClick={() => chooseMajor(opt)}>
-                          {opt}
-                        </button>
-                      ))}
-                      <button className="btnPill" style={{ width: "100%" }} onClick={() => chooseMajor("我就這樣做。")}>
-                        我就這樣做。
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div style={{ marginTop: 14 }} className="glassCard">
-              <div className="cardPad">
-                <div className="cardTitle">我做了什麼</div>
-                <div className="cardText">自然語言為主；可選指令：去 交易站 探路</div>
-                <div style={{ marginTop: 10 }}>
-                  <textarea
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    placeholder="例如：我去交易站探路，順便找人聊聊。"
-                  />
-                </div>
-                <div className="btnRow">
-                  <button className="btnPill btnPillPrimary" onClick={commitInput}>
-                    送出
+                <div className="iconRow">
+                  <button className="iconBtn" aria-label="主控面板" title="主控面板" onClick={() => setDrawer("profile")}>
+                    <KeyIcon />
+                  </button>
+                  <button className="iconBtn" aria-label="回顧" title="回顧" onClick={() => setDrawer("recap")}>
+                    <IconClock />
+                  </button>
+                  <button className="iconBtn" aria-label="檔案櫃" title="檔案櫃" onClick={() => setDrawer("saves")}>
+                    <IconFolder />
+                  </button>
+                  <button className="iconBtn" aria-label="回封面" title="回封面" onClick={() => setMode("cover")}>
+                    <IconHome />
                   </button>
                 </div>
+              </div>
+
+              <div className="mediaCard">
+                <div className="mediaInner">
+                  <div className="storyFrame">
+                    <div className="storyFramePad">
+                      <div className="storyText">
+                        {latestNarrative?.text || "（尚無正文）"}
+                      </div>
+
+                      <div className="windMini">
+                        {latestWind?.text
+                          ? latestWind.text.split("\n").slice(0, 3).join("\n")
+                          : "（尚無風向）"}
+                      </div>
+
+                      {lastMajor && isLastLog(lastMajor, logs) && (
+                        <div style={{ marginTop: 12 }}>
+                          <div className="windMini" style={{ background: "rgba(255,255,255,.06)" }}>
+                            <b style={{ color: "rgba(234,240,255,.92)" }}>關鍵時刻</b>
+                            <div style={{ marginTop: 10 }}>
+                              {(lastMajor.data?.options || []).map((opt: string, i: number) => (
+                                <button
+                                  key={i}
+                                  className="btnPill"
+                                  style={{ width: "100%", marginBottom: 10 }}
+                                  onClick={() => chooseMajor(opt)}
+                                >
+                                  {opt}
+                                </button>
+                              ))}
+                              <button
+                                className="btnPill"
+                                style={{ width: "100%" }}
+                                onClick={() => chooseMajor("我就這樣做。")}
+                              >
+                                我就這樣做。
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="castCard">
+                    <div className="castLabel">active member</div>
+                    <div className="castRow">
+                      {getCastPlaceholders().map((c) => (
+                        <button
+                          key={c.id}
+                          className="castItem"
+                          onClick={() => {
+                            const t = input ? input + "\n" : "";
+                            setInput(t + `找 ${c.label} 深聊`);
+                          }}
+                          aria-label={`快速指令：找 ${c.label} 深聊`}
+                          title={`找 ${c.label} 深聊`}
+                          style={{ background: "transparent", border: "none", padding: 0 }}
+                        >
+                          <div className="avatar">{c.initial}</div>
+                          <div>{c.label}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+            <div className="actionBar">
+              <div className="actionInner">
+                <textarea
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="我做了什麼（自然語言為主；可選指令：去 交易站 探路）"
+                />
+                <button className="sendBtn" onClick={commitInput}>送出</button>
               </div>
             </div>
           </div>
         )}
       </div>
-    </div>
-  );
-}
 
-function renderStory(logs: LogRow[]) {
-  const view = logs.filter((l) => ["narrative", "wind", "system", "input"].includes(l.kind));
-  return (
-    <div>
-      {view.map((l) => (
-        <div key={l.logId} style={{ marginBottom: 12 }}>
-          <div className="badge">{labelKind(l.kind)}</div>
-          <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.7, marginTop: 8 }}>{l.text}</div>
+      {/* Drawers */}
+      {drawer && <div className="drawerBackdrop" onClick={closeDrawer} aria-hidden="true" />}
+      {drawer && (
+        <div className="drawer" role="dialog" aria-modal="true">
+          <div className="drawerPanel">
+            <div className="drawerHead">
+              <div className="drawerTitle">
+                {drawer === "profile" ? "主控面板" : drawer === "recap" ? "回顧" : "檔案櫃"}
+              </div>
+              <button className="drawerClose" onClick={closeDrawer} aria-label="關閉">
+                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill="currentColor" d="M18.3 5.7 12 12l6.3 6.3-1.4 1.4L10.6 13.4 4.3 19.7 2.9 18.3 9.2 12 2.9 5.7 4.3 4.3l6.3 6.3 6.3-6.3 1.4 1.4Z"/>
+                </svg>
+              </button>
+            </div>
+
+            <div className="drawerBody">
+              {drawer === "profile" && (
+                <>
+                  <div className="listItem">
+                    <div className="listItemTitle">{curSave?.player.codename || curSave?.player.name || "（未命名）"}</div>
+                    <div className="listItemSub">
+                      身分：{curSave?.player.identity || "（系統將更新）"}<br/>
+                      風評：{curSave?.player.publicOpinion || "（系統將更新）"}
+                    </div>
+                  </div>
+                  <div className="listItem">
+                    <div className="listItemTitle">基礎信息</div>
+                    <div className="listItemSub">
+                      名字：{curSave?.player.name || "—"}<br/>
+                      代號：{curSave?.player.codename || "—"}<br/>
+                      暱稱：{curSave?.player.nickname || "—"}<br/>
+                      年齡：{curSave?.player.age ?? "—"}<br/>
+                      天賦：{curSave?.player.talent || "—"}<br/>
+                      異能：{curSave?.player.ability || "（無/未覺醒）"}
+                    </div>
+                  </div>
+                  <div className="listItem">
+                    <div className="listItemTitle">性格/原則</div>
+                    <div className="listItemSub">
+                      性格：{(curSave?.player.personalityTags || []).join("、") || "—"}<br/>
+                      原則：{(curSave?.player.principles || []).join("、") || "—"}<br/>
+                      當前偏向：{curSave?.player.currentPersonalityTilt || "（系統將更新）"}
+                    </div>
+                  </div>
+                  <div className="listItem">
+                    <div className="listItemTitle">男人 NPC 資料庫</div>
+                    <div className="listItemSub">尚未接入（目前沒有 npc_public/npc_secret store，也沒有匯入）</div>
+                  </div>
+                </>
+              )}
+
+              {drawer === "recap" && (
+                <>
+                  {(logs || [])
+                    .filter((l) => l.kind === "narrative")
+                    .slice(-10)
+                    .map((l) => (
+                      <div key={l.logId} className="listItem">
+                        <div className="listItemSub" style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
+                          {l.text}
+                        </div>
+                      </div>
+                    ))}
+                  {(!logs || logs.filter((l) => l.kind === "narrative").length === 0) && (
+                    <div className="listItem">
+                      <div className="listItemSub">尚無回顧內容。</div>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {drawer === "saves" && (
+                <>
+                  {(saves || []).map((s) => (
+                    <div key={s.saveId} className="listItem">
+                      <div className="listItemTitle">{s.title}</div>
+                      <div className="listItemSub">
+                        Day {s.progress.day} · 段落 {s.progress.segment}
+                      </div>
+                      <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
+                        <button className="btnPill btnPillPrimary" onClick={async () => { closeDrawer(); await openSave(s.saveId, true); }}>
+                          進入
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {(!saves || saves.length === 0) && (
+                    <div className="listItem">
+                      <div className="listItemSub">目前沒有存檔。</div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
         </div>
-      ))}
+      )}
     </div>
   );
 }
 
-function labelKind(kind: string) {
-  if (kind === "narrative") return "正文";
-  if (kind === "wind") return "風向";
-  if (kind === "input") return "你做了什麼";
-  if (kind === "system") return "系統";
-  return kind;
+function Section(props: { title: string; open: boolean; onToggle: ()=>void; children: React.ReactNode }) {
+  return (
+    <div className="sec">
+      <div className="secHead">
+        <div className="secTitle">{props.title}</div>
+        <div className="secRight">
+          <span className="secHint">{props.open ? "展開" : "收合"}</span>
+          <button className="keyBtn" onClick={props.onToggle} aria-label="切換展開收合">
+            <KeyIcon />
+          </button>
+        </div>
+      </div>
+      {props.open && <div className="secBody">{props.children}</div>}
+    </div>
+  );
+}
+
+function KV(props: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="kv2">
+      <label>{props.label}</label>
+      <div>{props.children}</div>
+    </div>
+  );
 }
 
 function isLastLog(target: LogRow, all: LogRow[]) {
   return all.length > 0 && all[all.length - 1].logId === target.logId;
+}
+
+function getCastPlaceholders() {
+  // 圖一/圖二那種底部圓形列：先用假資料（不爆雷、不接男主庫）
+  return [
+    { id: "a", label: "alpha", initial: "A" },
+    { id: "b", label: "bravo", initial: "B" },
+    { id: "c", label: "cobalt", initial: "C" },
+    { id: "d", label: "delta", initial: "D" },
+    { id: "e", label: "echo", initial: "E" },
+    { id: "f", label: "foxtrot", initial: "F" },
+  ];
 }
