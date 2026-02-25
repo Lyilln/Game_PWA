@@ -564,8 +564,6 @@ async function onDelete(saveId: string) {
                              const opts = [`找 ${c.label} 深聊`, `跟 ${c.label} 守夜`, `問 ${c.label} 一件事`];
                              const pick = opts[Math.floor(Math.random() * opts.length)];
                              setInput(t + pick);
-                          aria-label={`快速指令：找 ${c.label} 深聊`}
-                          title={`快速指令：找 ${c.label} 深聊`}
                           style={{ background: "transparent", border: "none", padding: 0 }}
                         >
                           <div className="avatar">{c.initial}</div>
