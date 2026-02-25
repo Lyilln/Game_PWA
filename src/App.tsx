@@ -69,7 +69,7 @@ function KeyIcon() {
 export default function App() {
   const [mode, setMode] = useState<Mode>("cover");
   const [drawer, setDrawer] = useState<DrawerKey>(null);
-
+  const [profileTab, setProfileTab] = useState<"base"|"persona"|"panel"|"relations"|"reputation"|"achievements">("base");
   const [saves, setSaves] = useState<SaveRow[]>([]);
   const [curSave, setCurSave] = useState<SaveRow | null>(null);
   const [logs, setLogs] = useState<LogRow[]>([]);
@@ -555,14 +555,15 @@ async function onDelete(saveId: string) {
                   <div className="castCard">
                     <div className="castLabel">active member</div>
                     <div className="castRow">
-                      {getCastPlaceholders().map((c) => (
+                      {getRecentCastFromLogs(logs, 6).map((c) => (
                         <button
                           key={c.id}
                           className="castItem"
                           onClick={() => {
                             const t = input ? input + "\n" : "";
-                            setInput(t + `找 ${c.label} 深聊`);
-                          }}
+                             const opts = [`找 ${c.label} 深聊`, `跟 ${c.label} 守夜`, `問 ${c.label} 一件事`];
+                             const pick = opts[Math.floor(Math.random() * opts.length)];
+                             setInput(t + pick);
                           aria-label={`快速指令：找 ${c.label} 深聊`}
                           title={`找 ${c.label} 深聊`}
                           style={{ background: "transparent", border: "none", padding: 0 }}
@@ -610,39 +611,155 @@ async function onDelete(saveId: string) {
 
             <div className="drawerBody">
               {drawer === "profile" && (
-                <>
-                  <div className="listItem">
-                    <div className="listItemTitle">{curSave?.player.codename || curSave?.player.name || "（未命名）"}</div>
-                    <div className="listItemSub">
-                      身分：{curSave?.player.identity || "（系統將更新）"}<br/>
-                      風評：{curSave?.player.publicOpinion || "（系統將更新）"}
-                    </div>
-                  </div>
-                  <div className="listItem">
-                    <div className="listItemTitle">基礎信息</div>
-                    <div className="listItemSub">
-                      名字：{curSave?.player.name || "—"}<br/>
-                      代號：{curSave?.player.codename || "—"}<br/>
-                      暱稱：{curSave?.player.nickname || "—"}<br/>
-                      年齡：{curSave?.player.age ?? "—"}<br/>
-                      天賦：{curSave?.player.talent || "—"}<br/>
-                      異能：{curSave?.player.ability || "（無/未覺醒）"}
-                    </div>
-                  </div>
-                  <div className="listItem">
-                    <div className="listItemTitle">性格/原則</div>
-                    <div className="listItemSub">
-                      性格：{(curSave?.player.personalityTags || []).join("、") || "—"}<br/>
-                      原則：{(curSave?.player.principles || []).join("、") || "—"}<br/>
-                      當前偏向：{curSave?.player.currentPersonalityTilt || "（系統將更新）"}
-                    </div>
-                  </div>
-                  <div className="listItem">
-                    <div className="listItemTitle">男人 NPC 資料庫</div>
-                    <div className="listItemSub">尚未接入（目前沒有 npc_public/npc_secret store，也沒有匯入）</div>
-                  </div>
-                </>
-              )}
+  <>
+    <div className="profileHero">
+      <div className="profileHeroPad">
+        <div className="profileHeroTop">
+          <div>
+            <div className="profileName">
+              {curSave?.player.codename || curSave?.player.name || "（未命名）"}
+            </div>
+            <div className="profileMeta">
+              {`身分：${curSave?.player.identity || "（系統將更新）"}\n風評：${curSave?.player.publicOpinion || "（系統將更新）"}`}
+            </div>
+          </div>
+          <div className="miniPill">♀ 女</div>
+        </div>
+
+        <div className="profilePills">
+          <span className="miniPill">天賦：{curSave?.player.talent || "—"}</span>
+          <span className="miniPill">異能：{curSave?.player.ability || "（無/未覺醒）"}</span>
+          <span className="miniPill">曖昧：{curSave?.player.flirtCount ?? 0}</span>
+          <span className="miniPill">已定義：{(curSave?.player.definedRelationships || []).length}</span>
+        </div>
+
+        <div className="profileGrid">
+          <div className="profileBox">
+            <div className="profileBoxTitle">名字 / 暱稱</div>
+            <div className="profileBoxValue">
+              {`${curSave?.player.name || "—"}\n${curSave?.player.nickname || "—"}`}
+            </div>
+          </div>
+          <div className="profileBox">
+            <div className="profileBoxTitle">性格偏向（動態）</div>
+            <div className="profileBoxValue">
+              {curSave?.player.currentPersonalityTilt || "（系統將更新）"}
+            </div>
+          </div>
+        </div>
+
+        <div className="drawerTabs">
+          <button className={`tabBtn ${profileTab==="base"?"active":""}`} onClick={()=>setProfileTab("base")}>基礎</button>
+          <button className={`tabBtn ${profileTab==="persona"?"active":""}`} onClick={()=>setProfileTab("persona")}>性格</button>
+          <button className={`tabBtn ${profileTab==="panel"?"active":""}`} onClick={()=>setProfileTab("panel")}>數值</button>
+          <button className={`tabBtn ${profileTab==="relations"?"active":""}`} onClick={()=>setProfileTab("relations")}>關係</button>
+          <button className={`tabBtn ${profileTab==="reputation"?"active":""}`} onClick={()=>setProfileTab("reputation")}>名聲</button>
+          <button className={`tabBtn ${profileTab==="achievements"?"active":""}`} onClick={()=>setProfileTab("achievements")}>成就</button>
+        </div>
+      </div>
+    </div>
+
+    <div className="profileRail">
+      <div className="profileRailTitle">active member</div>
+      <div className="castRow">
+        {getRecentCastFromLogs(logs, 6).map((c) => (
+          <button
+            key={c.id}
+            className="castItem"
+            onClick={() => {
+              const t = input ? input + "\n" : "";
+              const opts = [`找 ${c.label} 深聊`, `跟 ${c.label} 守夜`, `問 ${c.label} 一件事`];
+              const pick = opts[Math.floor(Math.random() * opts.length)];
+              setInput(t + pick);
+              closeDrawer();
+            }}
+            style={{ background: "transparent", border: "none", padding: 0 }}
+          >
+            <div className="avatar">{c.initial}</div>
+            <div>{c.label}</div>
+          </button>
+        ))}
+      </div>
+    </div>
+
+    <div className="line" />
+
+    {profileTab === "base" && (
+      <div className="listItem">
+        <div className="listItemTitle">基礎信息</div>
+        <div className="listItemSub">
+          名字：{curSave?.player.name || "—"}{"\n"}
+          代號：{curSave?.player.codename || "—"}{"\n"}
+          暱稱：{curSave?.player.nickname || "—"}{"\n"}
+          年齡：{curSave?.player.age ?? "—"}
+        </div>
+      </div>
+    )}
+
+    {profileTab === "persona" && (
+      <div className="listItem">
+        <div className="listItemTitle">性格 / 原則</div>
+        <div className="listItemSub">
+          性格：{(curSave?.player.personalityTags || []).join("、") || "—"}{"\n"}
+          原則：{(curSave?.player.principles || []).join("、") || "—"}
+        </div>
+      </div>
+    )}
+
+    {profileTab === "panel" && (
+      <div className="listItem">
+        <div className="listItemTitle">個人數值面板</div>
+        <div className="listItemSub">
+          總評：{curSave?.player.panel?.overall ?? 0}{"\n"}
+          生存：{curSave?.player.panel?.survival ?? 0}｜戰鬥：{curSave?.player.panel?.combat ?? 0}{"\n"}
+          智略：{curSave?.player.panel?.strategy ?? 0}｜魅力：{curSave?.player.panel?.charm ?? 0}{"\n"}
+          異能：{curSave?.player.panel?.abilityPower ?? 0}｜壓力：{curSave?.player.panel?.stress ?? 0}
+        </div>
+      </div>
+    )}
+
+    {profileTab === "relations" && (
+      <div className="listItem">
+        <div className="listItemTitle">關係狀態</div>
+        <div className="listItemSub">
+          曖昧中人數：{curSave?.player.flirtCount ?? 0}{"\n"}
+          已定義關係：
+          {(curSave?.player.definedRelationships || []).length === 0
+            ? " 無"
+            : "\n" + (curSave?.player.definedRelationships || [])
+                .map(r => `- ${r.label}（${r.npcId}）`)
+                .join("\n")}
+        </div>
+      </div>
+    )}
+
+    {profileTab === "reputation" && (
+      <div className="listItem">
+        <div className="listItemTitle">名聲</div>
+        <div className="listItemSub">
+          標籤：{(curSave?.player.reputationTags || []).join("、") || "—"}{"\n"}
+          風評：{curSave?.player.publicOpinion || "（系統將更新）"}
+        </div>
+      </div>
+    )}
+
+    {profileTab === "achievements" && (
+      <div className="listItem">
+        <div className="listItemTitle">成就</div>
+        <div className="listItemSub">
+          {(curSave?.player.achievements || []).length === 0
+            ? "尚無成就。"
+            : (curSave?.player.achievements || []).map(a => `• ${a}`).join("\n")}
+        </div>
+      </div>
+    )}
+
+    <div className="listItem">
+      <div className="listItemTitle">男人 NPC 資料庫</div>
+      <div className="listItemSub">已匯入（public/secret）。你不用打開 secret 檔案。</div>
+    </div>
+  </>
+)}
 
               {drawer === "recap" && (
                 <>
@@ -743,4 +860,57 @@ function getCastPlaceholders() {
     { id: "e", label: "echo", initial: "E" },
     { id: "f", label: "foxtrot", initial: "F" },
   ];
+}
+
+function extractTargetsFromInput(text: string): string[] {
+  const s = (text || "").trim();
+  if (!s) return [];
+
+  // 支援：找 X / 跟 X / 問 X / 叫 X
+  // 也支援自然語句：「我去找X聊聊」「我跟X守夜」
+  const out: string[] = [];
+
+  // 空白分詞命令
+  const m1 = s.match(/^(找|跟|問|叫)\s+([^\s，,。！？!?\n]{1,12})/);
+  if (m1) out.push(m1[2]);
+
+  // 自然語句
+  const m2 = s.match(/(找|跟|問|叫)([^\s，,。！？!?\n]{1,12})/g);
+  if (m2) {
+    for (const chunk of m2) {
+      const mm = chunk.match(/(找|跟|問|叫)([^\s，,。！？!?\n]{1,12})/);
+      if (mm) out.push(mm[2]);
+    }
+  }
+
+  // 去重
+  return Array.from(new Set(out)).slice(0, 12);
+}
+
+function getRecentCastFromLogs(logs: LogRow[], fallback = 6) {
+  const targets: string[] = [];
+  for (let i = logs.length - 1; i >= 0; i--) {
+    const l = logs[i];
+    if (l.kind !== "input") continue;
+    const names = extractTargetsFromInput(l.text);
+    for (const n of names) {
+      if (!targets.includes(n)) targets.push(n);
+      if (targets.length >= fallback) break;
+    }
+    if (targets.length >= fallback) break;
+  }
+
+  // 不夠就補 placeholder（保持排版滿）
+  const fillers = ["alpha", "bravo", "cobalt", "delta", "echo", "foxtrot", "moss", "nova"];
+  while (targets.length < fallback) {
+    const f = fillers[targets.length % fillers.length];
+    if (!targets.includes(f)) targets.push(f);
+    else targets.push(f + "2");
+  }
+
+  return targets.map((label, idx) => ({
+    id: `cast_${idx}_${label}`,
+    label,
+    initial: (label[0] || "?").toUpperCase(),
+  }));
 }
