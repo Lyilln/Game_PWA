@@ -23,6 +23,9 @@ import {
   generateNextNarrative,
 } from "./engine";
 
+import npcPublic from "./data/npc_public.json";
+import npcSecret from "./data/npc_secret.json";
+
 type Mode = "cover" | "setup" | "play";
 type SecKey = "base" | "persona" | "panel" | "relations" | "reputation" | "achievements";
 type DrawerKey = "profile" | "recap" | "saves" | null;
