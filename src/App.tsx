@@ -557,15 +557,17 @@ async function onDelete(saveId: string) {
                     <div className="castRow">
                       {getRecentCastFromLogs(logs, 6).map((c) => (
                         <button
-                          key={c.id}
-                          className="castItem"
-                          onClick={() => {
-                            const t = input ? input + "\n" : "";
-                             const opts = [`找 ${c.label} 深聊`, `跟 ${c.label} 守夜`, `問 ${c.label} 一件事`];
-                             const pick = opts[Math.floor(Math.random() * opts.length)];
-                             setInput(t + pick);
-                          style={{ background: "transparent", border: "none", padding: 0 }}
-                        >
+  key={c.id}
+  className="castItem"
+  onClick={() => {
+    const t = input ? input + "\n" : "";
+    const opts = [`找 ${c.label} 深聊`, `跟 ${c.label} 守夜`, `問 ${c.label} 一件事`];
+    const pick = opts[Math.floor(Math.random() * opts.length)];
+    setInput(t + pick);
+    closeDrawer();
+  }}
+  style={{ background: "transparent", border: "none", padding: 0 }}
+>
                           <div className="avatar">{c.initial}</div>
                           <div>{c.label}</div>
                         </button>
