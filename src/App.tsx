@@ -267,6 +267,42 @@ export default function App() {
     setDrawer(null);
   }
 
+async function onRename(saveId: string) {
+  const cur = saves.find(x => x.saveId === saveId);
+  const v = prompt("新的存檔名稱：", cur?.title || "");
+  if (!v) return;
+  await renameSave(saveId, v);
+  await refreshSaves();
+  if (curSave?.saveId === saveId) {
+    await openSave(saveId, mode === "play");
+  }
+}
+
+async function onDuplicate(saveId: string) {
+  const cur = saves.find(x => x.saveId === saveId);
+  const v = prompt("複製存檔名稱：", `${cur?.title || "存檔"}（複製）`);
+  const copy = await duplicateSave(saveId, v || undefined);
+  await refreshSaves();
+  // 複製完不強制進入，你要進入就點「進入」
+}
+
+async function onDelete(saveId: string) {
+  const cur = saves.find(x => x.saveId === saveId);
+  const ok = confirm(`確定刪除「${cur?.title || "存檔"}」？這會刪掉該存檔所有紀錄。`);
+  if (!ok) return;
+
+  const deletingCurrent = curSave?.saveId === saveId;
+  await deleteSave(saveId);
+  await refreshSaves();
+
+  if (deletingCurrent) {
+    setCurSave(null);
+    setLogs([]);
+    setMode("cover");
+    closeDrawer();
+  }
+}
+
   return (
     <div className="app">
       <div className="shell">
@@ -640,6 +676,15 @@ export default function App() {
                         <button className="btnPill btnPillPrimary" onClick={async () => { closeDrawer(); await openSave(s.saveId, true); }}>
                           進入
                         </button>
+                         <button className="btnPill" onClick={async () => onDuplicate(s.saveId)}>
+                           複製
+                         </button>
+                         <button className="btnPill" onClick={async () => onRename(s.saveId)}>
+                           命名
+                         </button>
+                         <button className="btnPill" onClick={async () => onDelete(s.saveId)}>
+                           刪除
+                         </button>
                       </div>
                     </div>
                   ))}
