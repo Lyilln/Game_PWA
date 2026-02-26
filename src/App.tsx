@@ -741,7 +741,6 @@ useEffect(() => {
     </div>
   </div>
 )}
-      </div>
 
       {/* Drawers */}
       {drawer && <div className="drawerBackdrop" onClick={closeDrawer} aria-hidden="true" />}
