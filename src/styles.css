@@ -1,3 +1,607 @@
+:root{
+  color-scheme: dark;
+
+  --bg0:#070A10;
+  --bg1:#0B1020;
+
+  --text:#EAF0FF;
+  --sub:rgba(234,240,255,.72);
+  --mut:rgba(234,240,255,.52);
+
+  --glass: rgba(255,255,255,.10);
+  --glass2: rgba(255,255,255,.06);
+  --stroke: rgba(255,255,255,.18);
+  --stroke2: rgba(255,255,255,.10);
+
+  --a1: rgba(122,162,255,.55);
+  --a2: rgba(173,121,255,.45);
+  --a3: rgba(73,255,224,.35);
+
+  --shadow: rgba(0,0,0,.55);
+
+  --r-xl: 28px;
+  --r-lg: 20px;
+  --r-md: 14px;
+}
+
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans TC","Microsoft JhengHei",sans-serif;
+  color:var(--text);
+  background:
+    radial-gradient(1100px 700px at 20% 15%, rgba(173,121,255,.18), transparent 55%),
+    radial-gradient(900px 600px at 78% 22%, rgba(122,162,255,.18), transparent 55%),
+    radial-gradient(900px 700px at 55% 78%, rgba(73,255,224,.10), transparent 60%),
+    linear-gradient(180deg, var(--bg0), var(--bg1));
+  overflow-x:hidden;
+}
+
+a{ color:inherit; }
+button,input,textarea{ font:inherit; }
+button{ cursor:pointer; }
+button:disabled{ cursor:default; opacity:.5; }
+
+#root{ min-height:100%; }
+
+.app{
+  min-height:100svh;
+  padding: 18px 16px 22px;
+  display:flex;
+  justify-content:center;
+}
+
+.shell{
+  width: min(980px, 100%);
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.bgStage{
+  position:relative;
+  border-radius: var(--r-xl);
+  padding: 18px 16px 16px;
+  border: 1px solid rgba(255,255,255,.10);
+  background:
+    radial-gradient(600px 420px at 20% 20%, rgba(173,121,255,.22), transparent 60%),
+    radial-gradient(620px 440px at 80% 30%, rgba(122,162,255,.20), transparent 62%),
+    radial-gradient(520px 520px at 55% 85%, rgba(73,255,224,.12), transparent 62%),
+    rgba(255,255,255,.02);
+  box-shadow:
+    0 24px 80px rgba(0,0,0,.55),
+    inset 0 1px 0 rgba(255,255,255,.10);
+  overflow:hidden;
+}
+
+.bgStage::before{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  background:
+    radial-gradient(12px 12px at 20% 25%, rgba(173,121,255,.65), transparent 60%),
+    radial-gradient(14px 14px at 78% 28%, rgba(122,162,255,.60), transparent 62%),
+    radial-gradient(14px 14px at 60% 82%, rgba(73,255,224,.45), transparent 62%);
+  opacity:.55;
+  filter: blur(22px);
+  pointer-events:none;
+}
+
+/* ====== common glass card ====== */
+.glassCard{
+  position:relative;
+  border-radius: var(--r-xl);
+  border: 1px solid var(--stroke);
+  background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.06));
+  box-shadow:
+    0 24px 70px rgba(0,0,0,.45),
+    inset 0 1px 0 rgba(255,255,255,.18);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  overflow:hidden;
+}
+.glassCard::after{
+  content:"";
+  position:absolute;
+  inset:-1px;
+  background:
+    radial-gradient(110px 110px at 12% 18%, rgba(173,121,255,.20), transparent 60%),
+    radial-gradient(140px 140px at 88% 22%, rgba(122,162,255,.18), transparent 62%),
+    radial-gradient(180px 180px at 58% 92%, rgba(73,255,224,.12), transparent 62%);
+  pointer-events:none;
+}
+.cardPad{
+  position:relative;
+  z-index:1;
+  padding: 18px 18px 16px;
+}
+
+.cardTitle{
+  font-size: 18px;
+  font-weight: 850;
+  letter-spacing:.2px;
+  margin: 0 0 6px 0;
+}
+.cardText{
+  color: var(--sub);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.btnRow{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top: 14px;
+}
+
+.btnPill{
+  border: 1px solid var(--stroke2);
+  border-radius: 999px;
+  padding: 12px 14px;
+  background: rgba(255,255,255,.06);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: rgba(234,240,255,.92);
+  font-weight: 800;
+}
+.btnPillPrimary{
+  border: 1px solid rgba(255,255,255,.10);
+  background:
+    linear-gradient(90deg, rgba(173,121,255,.90), rgba(122,162,255,.90));
+  color: rgba(7,10,16,.92);
+  box-shadow:
+    0 18px 60px rgba(122,162,255,.18),
+    0 18px 60px rgba(173,121,255,.15);
+}
+
+.badgeRow{
+  margin-top: 14px;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.05);
+  color: rgba(234,240,255,.76);
+  font-size: 12px;
+}
+
+/* ====== top bar / icon btn ====== */
+.topBar{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom: 10px;
+  z-index:2;
+}
+.brand{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+.brandTitle{
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: .6px;
+}
+.brandSub{
+  font-size: 13px;
+  color: var(--sub);
+  line-height:1.4;
+}
+
+.iconBtn{
+  height: 40px;
+  width: 40px;
+  border-radius: 14px;
+  border: 1px solid var(--stroke2);
+  background: rgba(255,255,255,.06);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 14px 40px rgba(0,0,0,.35);
+  display:grid;
+  place-items:center;
+  color: rgba(234,240,255,.88);
+}
+.iconRow{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+
+/* ====== Setup sections ====== */
+.sec{ margin-top:14px; }
+.secHead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding: 12px 14px;
+  border-radius: var(--r-lg);
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow:
+    0 18px 60px rgba(0,0,0,.28),
+    inset 0 1px 0 rgba(255,255,255,.12);
+}
+.secTitle{
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: .4px;
+  color: rgba(234,240,255,.92);
+}
+.secRight{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.secHint{
+  font-size: 12px;
+  color: rgba(234,240,255,.62);
+}
+.keyBtn{
+  height: 38px;
+  width: 38px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.14);
+  background:
+    radial-gradient(18px 18px at 30% 28%, rgba(255,255,255,.22), transparent 60%),
+    linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.05));
+  box-shadow:
+    0 18px 60px rgba(0,0,0,.26),
+    inset 0 1px 0 rgba(255,255,255,.16);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  display:grid;
+  place-items:center;
+  color: rgba(234,240,255,.88);
+  transition: transform .12s ease, filter .12s ease, box-shadow .12s ease;
+}
+.keyBtn:active{
+  transform: translateY(1px) scale(.98);
+  filter: brightness(.98);
+  box-shadow:
+    0 10px 30px rgba(0,0,0,.26),
+    inset 0 1px 0 rgba(255,255,255,.14);
+}
+.secBody{
+  margin-top:10px;
+  padding: 12px 14px;
+  border-radius: var(--r-xl);
+  border: 1px solid rgba(255,255,255,.12);
+  background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
+  box-shadow:
+    0 24px 70px rgba(0,0,0,.35),
+    inset 0 1px 0 rgba(255,255,255,.14);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+.kv2{
+  display:grid;
+  grid-template-columns: 160px 1fr;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px dashed rgba(255,255,255,.08);
+}
+.kv2:last-child{ border-bottom:none; }
+.kv2 label{
+  color: rgba(234,240,255,.70);
+  font-size: 13px;
+  font-weight: 700;
+}
+.pillDyn{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(0,0,0,.28);
+  color: rgba(234,240,255,.78);
+  font-size: 13px;
+}
+input[type="text"], input[type="number"], textarea{
+  width:100%;
+  background: rgba(0,0,0,.28);
+  border: 1px solid rgba(255,255,255,.10);
+  color: rgba(234,240,255,.92);
+  padding: 10px 12px;
+  border-radius: 14px;
+  outline:none;
+}
+textarea{ min-height: 84px; resize: vertical; }
+
+/* ====== Play layout (圖一/圖二方向) ====== */
+.playStage{
+  position:relative;
+  border-radius: var(--r-xl);
+  border: 1px solid rgba(255,255,255,.10);
+  overflow:hidden;
+  min-height: 80svh;
+}
+.playBG{
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(900px 700px at 55% 45%, rgba(255,255,255,.10), transparent 58%),
+    radial-gradient(900px 700px at 80% 30%, rgba(122,162,255,.18), transparent 60%),
+    radial-gradient(900px 700px at 25% 30%, rgba(173,121,255,.16), transparent 60%),
+    linear-gradient(180deg, rgba(0,0,0,.30), rgba(0,0,0,.55));
+  filter: blur(0px);
+  transform: scale(1.02);
+}
+.playContent{
+  position:relative;
+  z-index:2;
+  padding: 14px 14px 120px; /* 底部留給輸入條 */
+}
+
+/* HUD like top floating card */
+.hud{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding: 12px 14px;
+  border-radius: var(--r-xl);
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.08);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 22px 70px rgba(0,0,0,.38);
+}
+.hudLeft{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+.hudTitle{
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing:.2px;
+}
+.hudSub{
+  font-size: 12px;
+  color: var(--sub);
+}
+
+/* media/story card (big main card) */
+.mediaCard{
+  margin-top: 14px;
+  border-radius: 32px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 30px 90px rgba(0,0,0,.45);
+  overflow:hidden;
+}
+.mediaInner{
+  padding: 14px;
+}
+.storyFrame{
+  position:relative;
+  border-radius: 26px;
+  overflow:hidden;
+  border: 1px solid rgba(255,255,255,.10);
+  background:
+    radial-gradient(600px 420px at 50% 50%, rgba(255,255,255,.10), transparent 60%),
+    linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.45));
+  min-height: 360px;
+}
+.storyFramePad{
+  padding: 18px 18px 16px;
+}
+.storyText{
+  white-space: pre-wrap;
+  line-height: 1.75;
+  font-size: 14.5px;
+  color: rgba(234,240,255,.92);
+}
+.windMini{
+  margin-top: 12px;
+  padding: 12px 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(0,0,0,.22);
+  color: rgba(234,240,255,.80);
+  font-size: 13px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+/* bottom cast rail */
+.castCard{
+  margin-top: 14px;
+  border-radius: 26px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.07);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 22px 70px rgba(0,0,0,.35);
+  padding: 14px 14px 12px;
+}
+.castLabel{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(0,0,0,.26);
+  color: rgba(234,240,255,.82);
+  font-weight: 800;
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+.castRow{
+  display:flex;
+  gap:12px;
+  overflow-x:auto;
+  padding-bottom: 6px;
+}
+.castRow::-webkit-scrollbar{ display:none; }
+.castItem{
+  min-width: 70px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+  color: rgba(234,240,255,.85);
+  font-size: 12px;
+}
+.avatar{
+  height: 56px;
+  width: 56px;
+  border-radius: 999px;
+  border: 2px solid rgba(255,255,255,.18);
+  background:
+    radial-gradient(18px 18px at 30% 30%, rgba(173,121,255,.35), transparent 60%),
+    radial-gradient(18px 18px at 70% 35%, rgba(122,162,255,.28), transparent 60%),
+    rgba(255,255,255,.06);
+  box-shadow: 0 16px 40px rgba(0,0,0,.35);
+  display:grid;
+  place-items:center;
+  font-weight: 900;
+  letter-spacing:.4px;
+}
+
+/* bottom input bar fixed */
+.actionBar{
+  position:fixed;
+  left:0; right:0; bottom:0;
+  z-index:50;
+  background: rgba(10,12,18,.78);
+  border-top: 1px solid rgba(255,255,255,.10);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+.actionInner{
+  max-width:980px;
+  margin:0 auto;
+  padding: 12px 16px;
+  display:flex;
+  gap:12px;
+  align-items:flex-end;
+}
+.actionInner textarea{
+  min-height: 56px;
+  max-height: 180px;
+}
+.sendBtn{
+  height: 56px;
+  min-width: 84px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: linear-gradient(90deg, rgba(173,121,255,.88), rgba(122,162,255,.88));
+  color: rgba(7,10,16,.92);
+  font-weight: 900;
+  box-shadow:
+    0 18px 60px rgba(122,162,255,.18),
+    0 18px 60px rgba(173,121,255,.15);
+}
+
+/* ====== Drawers (bottom sheets) ====== */
+.drawerBackdrop{
+  position:fixed;
+  inset:0;
+  z-index:60;
+  background: rgba(0,0,0,.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.drawer{
+  position:fixed;
+  left:0; right:0; bottom:0;
+  z-index:70;
+  padding: 0 14px 16px;
+}
+.drawerPanel{
+  max-width:980px;
+  margin:0 auto;
+  border-radius: 28px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 30px 100px rgba(0,0,0,.55);
+  overflow:hidden;
+}
+.drawerHead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding: 14px 14px;
+  border-bottom: 1px solid rgba(255,255,255,.10);
+}
+.drawerTitle{
+  font-weight: 950;
+  letter-spacing:.3px;
+}
+.drawerBody{
+  padding: 14px 14px 14px;
+  max-height: 60svh;
+  overflow:auto;
+}
+.drawerBody::-webkit-scrollbar{ display:none; }
+.drawerClose{
+  height: 38px;
+  width: 38px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.22);
+  color: rgba(234,240,255,.88);
+  display:grid;
+  place-items:center;
+}
+
+.line{
+  height:1px;
+  background: rgba(255,255,255,.10);
+  margin: 12px 0;
+}
+
+.listItem{
+  padding: 12px 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(0,0,0,.22);
+  margin-bottom: 10px;
+}
+.listItemTitle{
+  font-weight: 900;
+}
+.listItemSub{
+  color: rgba(234,240,255,.70);
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+@media (max-width: 520px){
+  .kv2{ grid-template-columns: 1fr; }
+  .sendBtn{ min-width: 72px; }
+}
+
+/* cast item button reset (avoid inline style={{...}} parse issues) */
+.castBtn{
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
 /* ===== Native App Cover (minimal + interactive) ===== */
 .nativeScreen{
   position: relative;
