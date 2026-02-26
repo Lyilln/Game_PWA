@@ -11,6 +11,9 @@
   --t-med: 220ms;
   --t-slow: 520ms;
   --ease: cubic-bezier(.2,.8,.2,1);
+  --spring: cubic-bezier(.2,.9,.2,1);
+  --ease-out: cubic-bezier(.16,1,.3,1);
+  --ease-soft: cubic-bezier(.2,.8,.2,1);
 
   /* dreamy accents */
   --lav: 205 170 255;      /* light purple */
@@ -963,4 +966,35 @@ textarea{ min-height: 84px; resize: vertical; }
   box-shadow:
     0 18px 60px rgba(122,162,255,.18),
     0 18px 60px rgba(173,121,255,.15);
+}
+
+/* ================= Apple-ish animations (clean, no duplicates) ================= */
+@media (prefers-reduced-motion: no-preference){
+  /* 模式切換：淡入 + 上滑 + 微模糊（很 iOS） */
+  .nativeScreen, .bgStage, .playStage{
+    animation: modeIn .42s var(--spring) both;
+  }
+
+  /* 抽屜：背景淡入 + 面板 spring */
+  .drawerBackdrop{ animation: fadeIn .18s ease-out both; }
+  .drawer{ animation: sheetUp .42s var(--spring) both; }
+  .drawerPanel{ animation: panelPop .52s var(--spring) both; }
+}
+
+@keyframes modeIn{
+  from{ opacity:0; transform: translate3d(0,10px,0); filter: blur(6px); }
+  to{ opacity:1; transform: translate3d(0,0,0); filter: blur(0); }
+}
+
+@keyframes fadeIn{ from{opacity:0;} to{opacity:1;} }
+
+@keyframes sheetUp{
+  from{ transform: translate3d(0,18px,0) scale(.99); opacity:0; }
+  to{ transform: translate3d(0,0,0) scale(1); opacity:1; }
+}
+
+@keyframes panelPop{
+  from{ transform: translate3d(0,20px,0) scale(.98); }
+  70%{ transform: translate3d(0,-2px,0) scale(1.002); }
+  to{ transform: translate3d(0,0,0) scale(1); }
 }
