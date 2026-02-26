@@ -631,7 +631,7 @@ export default function App() {
         </div>
       </div>
 
-      <div className="mediaCard">
+            <div className="mediaCard">
         <div className="mediaInner">
           {/* 大媒體卡（主視覺） */}
           <div className="bigMedia">
@@ -669,19 +669,11 @@ export default function App() {
             </div>
           </div>
 
-          {/* castRail：半透明泡泡底座 + 可橫滑/可散佈 */}
+          {/* 底座：圓形頭像泡泡（可拖拽、可散佈） */}
           <div className="castRail">
             <div className="castLabel">active member</div>
 
             <div className="castPlayground" ref={railRef}>
-              {/* 1) 橫滑軌道（只提供滑動“感”，不跟拖拽玩法衝突） */}
-              <div className="castScrollLayer" aria-hidden="true">
-                {getRecentCastFromLogs(logs, 6).map((c) => (
-                  <div key={`slot_${c.id}`} className="castSlot" />
-                ))}
-              </div>
-
-              {/* 2) 真正可拖拽泡泡（不動玩法：點一下就是塞 input） */}
               {getRecentCastFromLogs(logs, 6).map((c, i) => {
                 const baseX = 10 + i * 72;
                 const baseY = 10;
@@ -693,9 +685,6 @@ export default function App() {
                     className={`castBubble castBtn ${dragId === c.id ? "dragging" : ""}`}
                     onPointerDown={(e) => onBubbleDown(c.id, e)}
                     onClick={() => {
-                      // 避免「剛拖完放開」被當點擊
-                      if (Date.now() - lastDragEndTs.current < 220) return;
-
                       const t = input ? input + "\n" : "";
                       const opts = [`找 ${c.label} 深聊`, `跟 ${c.label} 守夜`, `問 ${c.label} 一件事`];
                       const pick = opts[Math.floor(Math.random() * opts.length)];
@@ -718,23 +707,20 @@ export default function App() {
           </div>
         </div>
       </div>
-    </div>
 
-    <div className="actionBar">
-      <div className="actionInner">
-        <textarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="我做了什麼（自然語言為主；可選指令：去 交易站 探路）"
-        />
-        <button className="sendBtn" onClick={commitInput}>
-          送出
-        </button>
+      {/* 漂浮輸入框（在 playStage 裡面，不是整頁 fixed） */}
+      <div className="actionBar">
+        <div className="actionInner">
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="我做了什麼（自然語言為主；可選指令：去 交易站 探路）"
+          />
+          <button className="sendBtn" onClick={commitInput}>
+            送出
+          </button>
+        </div>
       </div>
-    </div>
-  </div>
-)}
-</div>
 
       {drawer && <div className="drawerBackdrop" onClick={closeDrawer} aria-hidden="true" />}
       {drawer && (
