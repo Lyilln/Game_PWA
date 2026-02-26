@@ -340,21 +340,14 @@ export default function App() {
       <div className="nativeHeroCard">
         <div className="nativeHeroTitle">進入世界</div>
         <div className="nativeHeroText">
-          每段正文後輸入「我做了什麼」，世界會記住。{"\n"}
-          自然語言為主；可選指令提高解析準度（不強迫）。
-        </div>
+  {"每段正文後輸入「我做了什麼」，世界會記住。\n自然語言為主；可選指令（不強迫）。"}
+</div>
 
         <div className="nativeChips">
-          <span className="nativeChip">自然語言為主</span>
-          <span className="nativeChip">可選指令</span>
-          <span className="nativeChip">4–7 段關鍵時刻</span>
-          <span className="nativeChip">關係混合制</span>
-          <span className="nativeChip">異能世界觀</span>
-        </div>
-
-        <div className="nativeFootNote">
-          男人 NPC 資料庫：<b>已接入</b>（npc_public / npc_secret 已匯入；只匯入一次）
-        </div>
+  <span className="nativeChip">可選指令</span>
+  <span className="nativeChip">關係混合制</span>
+  <span className="nativeChip">異能</span>
+</div>
       </div>
     </div>
 
