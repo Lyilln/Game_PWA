@@ -36,21 +36,27 @@ type DrawerKey = "profile" | "recap" | "saves" | null;
 function IconHome() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-      <path fill="currentColor" d="M12 3l9 8h-3v10h-5v-6H11v6H6V11H3l9-8z"/>
+      <path fill="currentColor" d="M12 3l9 8h-3v10h-5v-6H11v6H6V11H3l9-8z" />
     </svg>
   );
 }
 function IconFolder() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-      <path fill="currentColor" d="M10 4l2 2h8a2 2 0 0 1 2 2v10a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V6a2 2 0 0 1 2-2h6z"/>
+      <path
+        fill="currentColor"
+        d="M10 4l2 2h8a2 2 0 0 1 2 2v10a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V6a2 2 0 0 1 2-2h6z"
+      />
     </svg>
   );
 }
 function IconClock() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-      <path fill="currentColor" d="M12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2Zm1 5h-2v6l5 3l1-1.73l-4-2.27V7Z"/>
+      <path
+        fill="currentColor"
+        d="M12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2Zm1 5h-2v6l5 3l1-1.73l-4-2.27V7Z"
+      />
     </svg>
   );
 }
@@ -69,7 +75,10 @@ function KeyIcon() {
 export default function App() {
   const [mode, setMode] = useState<Mode>("cover");
   const [drawer, setDrawer] = useState<DrawerKey>(null);
-  const [profileTab, setProfileTab] = useState<"base"|"persona"|"panel"|"relations"|"reputation"|"achievements">("base");
+  const [profileTab, setProfileTab] = useState<
+    "base" | "persona" | "panel" | "relations" | "reputation" | "achievements"
+  >("base");
+
   const [saves, setSaves] = useState<SaveRow[]>([]);
   const [curSave, setCurSave] = useState<SaveRow | null>(null);
   const [logs, setLogs] = useState<LogRow[]>([]);
@@ -97,6 +106,10 @@ export default function App() {
 
   const canContinue = useMemo(() => saves.length > 0, [saves]);
 
+  // 方便在 JSX 內避免型別欄位缺失爆 TS
+  const p: any = (curSave as any)?.player || {};
+  const prog: any = (curSave as any)?.progress || {};
+
   async function refreshSaves() {
     const all = await listSaves();
     setSaves(all);
@@ -112,23 +125,23 @@ export default function App() {
   }
 
   useEffect(() => {
-  refreshSaves();
-  (async () => {
-    // 男人庫只匯入一次：不重複灌資料
-    const seeded = await getMeta("npc_seed_v1");
-    if (seeded) return;
+    refreshSaves();
+    (async () => {
+      // 男人庫只匯入一次：不重複灌資料
+      const seeded = await getMeta("npc_seed_v1");
+      if (seeded) return;
 
-    const existing = await countNPCPublic();
-    if (existing > 0) {
+      const existing = await countNPCPublic();
+      if (existing > 0) {
+        await setMeta("npc_seed_v1", true);
+        return;
+      }
+
+      await importNPCPublic(npcPublic as any[]);
+      await importNPCSecret(npcSecret as any[]);
       await setMeta("npc_seed_v1", true);
-      return;
-    }
-
-    await importNPCPublic(npcPublic as any[]);
-    await importNPCSecret(npcSecret as any[]);
-    await setMeta("npc_seed_v1", true);
-  })();
-}, []);
+    })();
+  }, []);
 
   async function onContinue() {
     if (!saves[0]) return;
@@ -145,7 +158,7 @@ export default function App() {
   }
 
   function toggleSec(k: SecKey) {
-    setSecOpen((p) => ({ ...p, [k]: !p[k] }));
+    setSecOpen((prev) => ({ ...prev, [k]: !prev[k] }));
   }
 
   function splitTags(s: string): string[] {
@@ -163,34 +176,35 @@ export default function App() {
   }
 
   async function startLife() {
-    const p = makeEmptyPlayer();
+    const player: any = makeEmptyPlayer();
 
-    p.name = fName.trim();
-    p.codename = fCodename.trim();
-    p.nickname = fNickname.trim();
-    p.age = fAge === "" ? null : Number(fAge);
-    p.talent = fTalent.trim();
-    p.ability = fAbility.trim();
+    player.name = fName.trim();
+    player.codename = fCodename.trim();
+    player.nickname = fNickname.trim();
+    player.age = fAge === "" ? null : Number(fAge);
+    player.talent = fTalent.trim();
+    player.ability = fAbility.trim();
 
-    p.personalityTags = splitTags(fTags);
-    p.principles = splitTags(fPrinciples);
+    player.personalityTags = splitTags(fTags);
+    player.principles = splitTags(fPrinciples);
 
     // dynamic placeholders
-    p.identity = "未知身分（系統將更新）";
-    p.currentPersonalityTilt = "尚未形成（系統將更新）";
-    p.reputationTags = [];
-    p.publicOpinion = "尚無風評（系統將更新）";
-    p.achievements = [];
+    player.identity = "未知身分（系統將更新）";
+    player.currentPersonalityTilt = "尚未形成（系統將更新）";
+    player.reputationTags = [];
+    player.publicOpinion = "尚無風評（系統將更新）";
+    player.achievements = [];
 
-    p.panel.overall = 10;
-    p.panel.survival = 10;
-    p.panel.combat = 10;
-    p.panel.strategy = 10;
-    p.panel.charm = 10;
-    p.panel.abilityPower = p.ability ? 10 : 0;
-    p.panel.stress = 0;
+    if (!player.panel) player.panel = {};
+    player.panel.overall = 10;
+    player.panel.survival = 10;
+    player.panel.combat = 10;
+    player.panel.strategy = 10;
+    player.panel.charm = 10;
+    player.panel.abilityPower = player.ability ? 10 : 0;
+    player.panel.stress = 0;
 
-    const save = await createSave("存檔" + (saves.length + 1), p);
+    const save = await createSave("存檔" + (saves.length + 1), player);
     await refreshSaves();
 
     await appendLog(save.saveId, "narrative", "Day 1：你醒來時，世界像被冷色的灰塵覆蓋。");
@@ -207,7 +221,7 @@ export default function App() {
     const parsed = parseOptionalCommand(text);
     await appendLog(curSave.saveId, "input", text, parsed);
 
-    const updated = await updateSave(curSave.saveId, (s) => {
+    const updated = await updateSave(curSave.saveId, (s: any) => {
       const k = `act_${Date.now()}_${Math.random().toString(16).slice(2)}`;
       s.world.flags[k] = { ts: Date.now(), input: text, parsed };
 
@@ -218,15 +232,15 @@ export default function App() {
     setInput("");
     setCurSave(updated);
 
-    const seg = updated.progress.segment || 0;
+    const seg = (updated as any).progress?.segment || 0;
     await appendLog(updated.saveId, "narrative", generateNextNarrative(seg));
     await appendLog(updated.saveId, "wind", generateWindLines().join("\n"));
 
     const reloaded = await loadSave(updated.saveId);
     if (reloaded && shouldTriggerMajorChoice(reloaded)) {
       const m = makeMajorChoicePrompt("C");
-      await appendLog(updated.saveId, "major_choice", m.title, m);
-      await updateSave(updated.saveId, (s) => {
+      await appendLog(updated.saveId, "major_choice", (m as any).title, m);
+      await updateSave(updated.saveId, (s: any) => {
         s.world.pacing.sinceLastMajor = 0;
       });
     }
@@ -236,21 +250,21 @@ export default function App() {
 
   const latestNarrative = useMemo(() => {
     for (let i = logs.length - 1; i >= 0; i--) {
-      if (logs[i].kind === "narrative") return logs[i];
+      if ((logs[i] as any).kind === "narrative") return logs[i];
     }
     return null;
   }, [logs]);
 
   const latestWind = useMemo(() => {
     for (let i = logs.length - 1; i >= 0; i--) {
-      if (logs[i].kind === "wind") return logs[i];
+      if ((logs[i] as any).kind === "wind") return logs[i];
     }
     return null;
   }, [logs]);
 
   const lastMajor = useMemo(() => {
     for (let i = logs.length - 1; i >= 0; i--) {
-      if (logs[i].kind === "major_choice") return logs[i];
+      if ((logs[i] as any).kind === "major_choice") return logs[i];
     }
     return null;
   }, [logs]);
@@ -267,41 +281,40 @@ export default function App() {
     setDrawer(null);
   }
 
-async function onRename(saveId: string) {
-  const cur = saves.find(x => x.saveId === saveId);
-  const v = prompt("新的存檔名稱：", cur?.title || "");
-  if (!v) return;
-  await renameSave(saveId, v);
-  await refreshSaves();
-  if (curSave?.saveId === saveId) {
-    await openSave(saveId, mode === "play");
+  async function onRename(saveId: string) {
+    const cur = saves.find((x) => (x as any).saveId === saveId);
+    const v = prompt("新的存檔名稱：", (cur as any)?.title || "");
+    if (!v) return;
+    await renameSave(saveId, v);
+    await refreshSaves();
+    if ((curSave as any)?.saveId === saveId) {
+      await openSave(saveId, mode === "play");
+    }
   }
-}
 
-async function onDuplicate(saveId: string) {
-  const cur = saves.find(x => x.saveId === saveId);
-  const v = prompt("複製存檔名稱：", `${cur?.title || "存檔"}（複製）`);
-  const copy = await duplicateSave(saveId, v || undefined);
-  await refreshSaves();
-  // 複製完不強制進入，你要進入就點「進入」
-}
-
-async function onDelete(saveId: string) {
-  const cur = saves.find(x => x.saveId === saveId);
-  const ok = confirm(`確定刪除「${cur?.title || "存檔"}」？這會刪掉該存檔所有紀錄。`);
-  if (!ok) return;
-
-  const deletingCurrent = curSave?.saveId === saveId;
-  await deleteSave(saveId);
-  await refreshSaves();
-
-  if (deletingCurrent) {
-    setCurSave(null);
-    setLogs([]);
-    setMode("cover");
-    closeDrawer();
+  async function onDuplicate(saveId: string) {
+    const cur = saves.find((x) => (x as any).saveId === saveId);
+    const v = prompt("複製存檔名稱：", `${(cur as any)?.title || "存檔"}（複製）`);
+    await duplicateSave(saveId, v || undefined);
+    await refreshSaves();
   }
-}
+
+  async function onDelete(saveId: string) {
+    const cur = saves.find((x) => (x as any).saveId === saveId);
+    const ok = confirm(`確定刪除「${(cur as any)?.title || "存檔"}」？這會刪掉該存檔所有紀錄。`);
+    if (!ok) return;
+
+    const deletingCurrent = (curSave as any)?.saveId === saveId;
+    await deleteSave(saveId);
+    await refreshSaves();
+
+    if (deletingCurrent) {
+      setCurSave(null);
+      setLogs([]);
+      setMode("cover");
+      closeDrawer();
+    }
+  }
 
   return (
     <div className="app">
@@ -350,7 +363,7 @@ async function onDelete(saveId: string) {
 
                 <div className="line" />
                 <div className="cardText">
-                  男人 NPC 資料庫：<b>尚未接入</b>（目前沒有 npc_public / npc_secret，也沒有匯入流程）
+                  男人 NPC 資料庫：<b>已接入</b>（npc_public / npc_secret 已匯入；只匯入一次）
                 </div>
               </div>
             </div>
@@ -371,11 +384,7 @@ async function onDelete(saveId: string) {
               </div>
             </div>
 
-            <Section
-              title="① 基礎信息"
-              open={secOpen.base}
-              onToggle={() => toggleSec("base")}
-            >
+            <Section title="① 基礎信息" open={secOpen.base} onToggle={() => toggleSec("base")}>
               <KV label="名字">
                 <input value={fName} onChange={(e) => setFName(e.target.value)} />
               </KV>
@@ -406,11 +415,7 @@ async function onDelete(saveId: string) {
               </KV>
             </Section>
 
-            <Section
-              title="② 性格"
-              open={secOpen.persona}
-              onToggle={() => toggleSec("persona")}
-            >
+            <Section title="② 性格" open={secOpen.persona} onToggle={() => toggleSec("persona")}>
               <KV label="性格（標籤/自寫）">
                 <input
                   placeholder="用逗號分隔，例如：嘴硬心軟、護短"
@@ -430,44 +435,52 @@ async function onDelete(saveId: string) {
               </KV>
             </Section>
 
-            <Section
-              title="③ 個人數值面板"
-              open={secOpen.panel}
-              onToggle={() => toggleSec("panel")}
-            >
-              <KV label="個人總評"><div className="pillDyn">（遊戲將更新）</div></KV>
-              <KV label="生存值"><div className="pillDyn">（遊戲將更新）</div></KV>
-              <KV label="戰鬥值"><div className="pillDyn">（遊戲將更新）</div></KV>
-              <KV label="智略值"><div className="pillDyn">（遊戲將更新）</div></KV>
-              <KV label="魅力值"><div className="pillDyn">（遊戲將更新）</div></KV>
-              <KV label="異能值"><div className="pillDyn">（遊戲將更新）</div></KV>
-              <KV label="壓力/崩潰值"><div className="pillDyn">（遊戲將更新）</div></KV>
+            <Section title="③ 個人數值面板" open={secOpen.panel} onToggle={() => toggleSec("panel")}>
+              <KV label="個人總評">
+                <div className="pillDyn">（遊戲將更新）</div>
+              </KV>
+              <KV label="生存值">
+                <div className="pillDyn">（遊戲將更新）</div>
+              </KV>
+              <KV label="戰鬥值">
+                <div className="pillDyn">（遊戲將更新）</div>
+              </KV>
+              <KV label="智略值">
+                <div className="pillDyn">（遊戲將更新）</div>
+              </KV>
+              <KV label="魅力值">
+                <div className="pillDyn">（遊戲將更新）</div>
+              </KV>
+              <KV label="異能值">
+                <div className="pillDyn">（遊戲將更新）</div>
+              </KV>
+              <KV label="壓力/崩潰值">
+                <div className="pillDyn">（遊戲將更新）</div>
+              </KV>
             </Section>
 
-            <Section
-              title="④ 關係"
-              open={secOpen.relations}
-              onToggle={() => toggleSec("relations")}
-            >
-              <KV label="曖昧中人數（動態）"><div className="pillDyn">0（遊戲將更新）</div></KV>
-              <KV label="已定義關係（可多個）"><div className="pillDyn">無（遊戲將更新）</div></KV>
+            <Section title="④ 關係" open={secOpen.relations} onToggle={() => toggleSec("relations")}>
+              <KV label="曖昧中人數（動態）">
+                <div className="pillDyn">0（遊戲將更新）</div>
+              </KV>
+              <KV label="已定義關係（可多個）">
+                <div className="pillDyn">無（遊戲將更新）</div>
+              </KV>
             </Section>
 
-            <Section
-              title="⑤ 名聲"
-              open={secOpen.reputation}
-              onToggle={() => toggleSec("reputation")}
-            >
-              <KV label="名聲標籤（動態更新）"><div className="pillDyn">（遊戲將更新）</div></KV>
-              <KV label="風評一句話（動態更新）"><div className="pillDyn">尚無風評（遊戲將更新）</div></KV>
+            <Section title="⑤ 名聲" open={secOpen.reputation} onToggle={() => toggleSec("reputation")}>
+              <KV label="名聲標籤（動態更新）">
+                <div className="pillDyn">（遊戲將更新）</div>
+              </KV>
+              <KV label="風評一句話（動態更新）">
+                <div className="pillDyn">尚無風評（遊戲將更新）</div>
+              </KV>
             </Section>
 
-            <Section
-              title="⑥ 成就"
-              open={secOpen.achievements}
-              onToggle={() => toggleSec("achievements")}
-            >
-              <KV label="成就（動態更新）"><div className="pillDyn">（遊戲將更新）</div></KV>
+            <Section title="⑥ 成就" open={secOpen.achievements} onToggle={() => toggleSec("achievements")}>
+              <KV label="成就（動態更新）">
+                <div className="pillDyn">（遊戲將更新）</div>
+              </KV>
             </Section>
 
             <div className="glassCard" style={{ marginTop: 14 }}>
@@ -475,9 +488,15 @@ async function onDelete(saveId: string) {
                 <div className="cardTitle">操作</div>
                 <div className="cardText">你填關鍵欄位，其它可按「幫我生成（不劇透）」補齊。</div>
                 <div className="btnRow">
-                  <button className="btnPill" onClick={genNoSpoil}>幫我生成（不劇透）</button>
-                  <button className="btnPill btnPillPrimary" onClick={startLife}>開始人生</button>
-                  <button className="btnPill" onClick={() => setMode("cover")}>回封面</button>
+                  <button className="btnPill" onClick={genNoSpoil}>
+                    幫我生成（不劇透）
+                  </button>
+                  <button className="btnPill btnPillPrimary" onClick={startLife}>
+                    開始人生
+                  </button>
+                  <button className="btnPill" onClick={() => setMode("cover")}>
+                    回封面
+                  </button>
                 </div>
               </div>
             </div>
@@ -490,8 +509,10 @@ async function onDelete(saveId: string) {
             <div className="playContent">
               <div className="hud">
                 <div className="hudLeft">
-                  <div className="hudTitle">{curSave.title}</div>
-                  <div className="hudSub">Day {curSave.progress.day} · 段落 {curSave.progress.segment}</div>
+                  <div className="hudTitle">{(curSave as any).title}</div>
+                  <div className="hudSub">
+                    Day {prog.day ?? 1} · 段落 {prog.segment ?? 0}
+                  </div>
                 </div>
                 <div className="iconRow">
                   <button className="iconBtn" aria-label="主控面板" title="主控面板" onClick={() => setDrawer("profile")}>
@@ -513,13 +534,11 @@ async function onDelete(saveId: string) {
                 <div className="mediaInner">
                   <div className="storyFrame">
                     <div className="storyFramePad">
-                      <div className="storyText">
-                        {latestNarrative?.text || "（尚無正文）"}
-                      </div>
+                      <div className="storyText">{(latestNarrative as any)?.text || "（尚無正文）"}</div>
 
                       <div className="windMini">
-                        {latestWind?.text
-                          ? latestWind.text.split("\n").slice(0, 3).join("\n")
+                        {(latestWind as any)?.text
+                          ? String((latestWind as any).text).split("\n").slice(0, 3).join("\n")
                           : "（尚無風向）"}
                       </div>
 
@@ -528,7 +547,7 @@ async function onDelete(saveId: string) {
                           <div className="windMini" style={{ background: "rgba(255,255,255,.06)" }}>
                             <b style={{ color: "rgba(234,240,255,.92)" }}>關鍵時刻</b>
                             <div style={{ marginTop: 10 }}>
-                              {(lastMajor.data?.options || []).map((opt: string, i: number) => (
+                              {(((lastMajor as any).data?.options || []) as string[]).map((opt: string, i: number) => (
                                 <button
                                   key={i}
                                   className="btnPill"
@@ -538,11 +557,7 @@ async function onDelete(saveId: string) {
                                   {opt}
                                 </button>
                               ))}
-                              <button
-                                className="btnPill"
-                                style={{ width: "100%" }}
-                                onClick={() => chooseMajor("我就這樣做。")}
-                              >
+                              <button className="btnPill" style={{ width: "100%" }} onClick={() => chooseMajor("我就這樣做。")}>
                                 我就這樣做。
                               </button>
                             </div>
@@ -557,24 +572,21 @@ async function onDelete(saveId: string) {
                     <div className="castRow">
                       {getRecentCastFromLogs(logs, 6).map((c) => (
                         <button
-  key={c.id}
-  className="castItem"
-  onClick={() => {
-    const t = input ? input + "\n" : "";
-    const opts = [`找 ${c.label} 深聊`, `跟 ${c.label} 守夜`, `問 ${c.label} 一件事`];
-    const pick = opts[Math.floor(Math.random() * opts.length)];
-    setInput(t + pick);
-    closeDrawer();
-  }}
-  style={{ background: "transparent", border: "none", padding: 0 }}
->
+                          key={c.id}
+                          className="castItem castBtn"
+                          onClick={() => {
+                            const t = input ? input + "\n" : "";
+                            const opts = [`找 ${c.label} 深聊`, `跟 ${c.label} 守夜`, `問 ${c.label} 一件事`];
+                            const pick = opts[Math.floor(Math.random() * opts.length)];
+                            setInput(t + pick);
+                          }}
+                        >
                           <div className="avatar">{c.initial}</div>
                           <div>{c.label}</div>
                         </button>
                       ))}
                     </div>
                   </div>
-
                 </div>
               </div>
             </div>
@@ -586,7 +598,9 @@ async function onDelete(saveId: string) {
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="我做了什麼（自然語言為主；可選指令：去 交易站 探路）"
                 />
-                <button className="sendBtn" onClick={commitInput}>送出</button>
+                <button className="sendBtn" onClick={commitInput}>
+                  送出
+                </button>
               </div>
             </div>
           </div>
@@ -599,181 +613,195 @@ async function onDelete(saveId: string) {
         <div className="drawer" role="dialog" aria-modal="true">
           <div className="drawerPanel">
             <div className="drawerHead">
-              <div className="drawerTitle">
-                {drawer === "profile" ? "主控面板" : drawer === "recap" ? "回顧" : "檔案櫃"}
-              </div>
+              <div className="drawerTitle">{drawer === "profile" ? "主控面板" : drawer === "recap" ? "回顧" : "檔案櫃"}</div>
               <button className="drawerClose" onClick={closeDrawer} aria-label="關閉">
                 <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-                  <path fill="currentColor" d="M18.3 5.7 12 12l6.3 6.3-1.4 1.4L10.6 13.4 4.3 19.7 2.9 18.3 9.2 12 2.9 5.7 4.3 4.3l6.3 6.3 6.3-6.3 1.4 1.4Z"/>
+                  <path
+                    fill="currentColor"
+                    d="M18.3 5.7 12 12l6.3 6.3-1.4 1.4L10.6 13.4 4.3 19.7 2.9 18.3 9.2 12 2.9 5.7 4.3 4.3l6.3 6.3 6.3-6.3 1.4 1.4Z"
+                  />
                 </svg>
               </button>
             </div>
 
             <div className="drawerBody">
               {drawer === "profile" && (
-  <>
-    <div className="profileHero">
-      <div className="profileHeroPad">
-        <div className="profileHeroTop">
-          <div>
-            <div className="profileName">
-              {curSave?.player.codename || curSave?.player.name || "（未命名）"}
-            </div>
-            <div className="profileMeta">
-              {`身分：${curSave?.player.identity || "（系統將更新）"}\n風評：${curSave?.player.publicOpinion || "（系統將更新）"}`}
-            </div>
-          </div>
-          <div className="miniPill">♀ 女</div>
-        </div>
+                <>
+                  <div className="profileHero">
+                    <div className="profileHeroPad">
+                      <div className="profileHeroTop">
+                        <div>
+                          <div className="profileName">{p.codename || p.name || "（未命名）"}</div>
+                          <div className="profileMeta">{`身分：${p.identity || "（系統將更新）"}\n風評：${
+                            p.publicOpinion || "（系統將更新）"
+                          }`}</div>
+                        </div>
+                        <div className="miniPill">♀ 女</div>
+                      </div>
 
-        <div className="profilePills">
-          <span className="miniPill">天賦：{curSave?.player.talent || "—"}</span>
-          <span className="miniPill">異能：{curSave?.player.ability || "（無/未覺醒）"}</span>
-          <span className="miniPill">曖昧：{curSave?.player.flirtCount ?? 0}</span>
-          <span className="miniPill">已定義：{(curSave?.player.definedRelationships || []).length}</span>
-        </div>
+                      <div className="profilePills">
+                        <span className="miniPill">天賦：{p.talent || "—"}</span>
+                        <span className="miniPill">異能：{p.ability || "（無/未覺醒）"}</span>
+                        <span className="miniPill">曖昧：{p.flirtCount ?? 0}</span>
+                        <span className="miniPill">已定義：{(p.definedRelationships || []).length}</span>
+                      </div>
 
-        <div className="profileGrid">
-          <div className="profileBox">
-            <div className="profileBoxTitle">名字 / 暱稱</div>
-            <div className="profileBoxValue">
-              {`${curSave?.player.name || "—"}\n${curSave?.player.nickname || "—"}`}
-            </div>
-          </div>
-          <div className="profileBox">
-            <div className="profileBoxTitle">性格偏向（動態）</div>
-            <div className="profileBoxValue">
-              {curSave?.player.currentPersonalityTilt || "（系統將更新）"}
-            </div>
-          </div>
-        </div>
+                      <div className="profileGrid">
+                        <div className="profileBox">
+                          <div className="profileBoxTitle">名字 / 暱稱</div>
+                          <div className="profileBoxValue">{`${p.name || "—"}\n${p.nickname || "—"}`}</div>
+                        </div>
+                        <div className="profileBox">
+                          <div className="profileBoxTitle">性格偏向（動態）</div>
+                          <div className="profileBoxValue">{p.currentPersonalityTilt || "（系統將更新）"}</div>
+                        </div>
+                      </div>
 
-        <div className="drawerTabs">
-          <button className={`tabBtn ${profileTab==="base"?"active":""}`} onClick={()=>setProfileTab("base")}>基礎</button>
-          <button className={`tabBtn ${profileTab==="persona"?"active":""}`} onClick={()=>setProfileTab("persona")}>性格</button>
-          <button className={`tabBtn ${profileTab==="panel"?"active":""}`} onClick={()=>setProfileTab("panel")}>數值</button>
-          <button className={`tabBtn ${profileTab==="relations"?"active":""}`} onClick={()=>setProfileTab("relations")}>關係</button>
-          <button className={`tabBtn ${profileTab==="reputation"?"active":""}`} onClick={()=>setProfileTab("reputation")}>名聲</button>
-          <button className={`tabBtn ${profileTab==="achievements"?"active":""}`} onClick={()=>setProfileTab("achievements")}>成就</button>
-        </div>
-      </div>
-    </div>
+                      <div className="drawerTabs">
+                        <button className={`tabBtn ${profileTab === "base" ? "active" : ""}`} onClick={() => setProfileTab("base")}>
+                          基礎
+                        </button>
+                        <button
+                          className={`tabBtn ${profileTab === "persona" ? "active" : ""}`}
+                          onClick={() => setProfileTab("persona")}
+                        >
+                          性格
+                        </button>
+                        <button className={`tabBtn ${profileTab === "panel" ? "active" : ""}`} onClick={() => setProfileTab("panel")}>
+                          數值
+                        </button>
+                        <button
+                          className={`tabBtn ${profileTab === "relations" ? "active" : ""}`}
+                          onClick={() => setProfileTab("relations")}
+                        >
+                          關係
+                        </button>
+                        <button
+                          className={`tabBtn ${profileTab === "reputation" ? "active" : ""}`}
+                          onClick={() => setProfileTab("reputation")}
+                        >
+                          名聲
+                        </button>
+                        <button
+                          className={`tabBtn ${profileTab === "achievements" ? "active" : ""}`}
+                          onClick={() => setProfileTab("achievements")}
+                        >
+                          成就
+                        </button>
+                      </div>
+                    </div>
+                  </div>
 
-    <div className="profileRail">
-      <div className="profileRailTitle">active member</div>
-      <div className="castRow">
-        {getRecentCastFromLogs(logs, 6).map((c) => (
-          <button
-            key={c.id}
-            className="castItem"
-            onClick={() => {
-              const t = input ? input + "\n" : "";
-              const opts = [`找 ${c.label} 深聊`, `跟 ${c.label} 守夜`, `問 ${c.label} 一件事`];
-              const pick = opts[Math.floor(Math.random() * opts.length)];
-              setInput(t + pick);
-              closeDrawer();
-            }}
-            style={{ background: "transparent", border: "none", padding: 0 }}
-          >
-            <div className="avatar">{c.initial}</div>
-            <div>{c.label}</div>
-          </button>
-        ))}
-      </div>
-    </div>
+                  <div className="profileRail">
+                    <div className="profileRailTitle">active member</div>
+                    <div className="castRow">
+                      {getRecentCastFromLogs(logs, 6).map((c) => (
+                        <button
+                          key={c.id}
+                          className="castItem castBtn"
+                          onClick={() => {
+                            const t = input ? input + "\n" : "";
+                            const opts = [`找 ${c.label} 深聊`, `跟 ${c.label} 守夜`, `問 ${c.label} 一件事`];
+                            const pick = opts[Math.floor(Math.random() * opts.length)];
+                            setInput(t + pick);
+                            closeDrawer();
+                          }}
+                        >
+                          <div className="avatar">{c.initial}</div>
+                          <div>{c.label}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-    <div className="line" />
+                  <div className="line" />
 
-    {profileTab === "base" && (
-      <div className="listItem">
-        <div className="listItemTitle">基礎信息</div>
-        <div className="listItemSub">
-          名字：{curSave?.player.name || "—"}{"\n"}
-          代號：{curSave?.player.codename || "—"}{"\n"}
-          暱稱：{curSave?.player.nickname || "—"}{"\n"}
-          年齡：{curSave?.player.age ?? "—"}
-        </div>
-      </div>
-    )}
+                  {profileTab === "base" && (
+                    <div className="listItem">
+                      <div className="listItemTitle">基礎信息</div>
+                      <div className="listItemSub">
+                        名字：{p.name || "—"}
+                        {"\n"}代號：{p.codename || "—"}
+                        {"\n"}暱稱：{p.nickname || "—"}
+                        {"\n"}年齡：{p.age ?? "—"}
+                      </div>
+                    </div>
+                  )}
 
-    {profileTab === "persona" && (
-      <div className="listItem">
-        <div className="listItemTitle">性格 / 原則</div>
-        <div className="listItemSub">
-          性格：{(curSave?.player.personalityTags || []).join("、") || "—"}{"\n"}
-          原則：{(curSave?.player.principles || []).join("、") || "—"}
-        </div>
-      </div>
-    )}
+                  {profileTab === "persona" && (
+                    <div className="listItem">
+                      <div className="listItemTitle">性格 / 原則</div>
+                      <div className="listItemSub">
+                        性格：{(p.personalityTags || []).join("、") || "—"}
+                        {"\n"}原則：{(p.principles || []).join("、") || "—"}
+                      </div>
+                    </div>
+                  )}
 
-    {profileTab === "panel" && (
-      <div className="listItem">
-        <div className="listItemTitle">個人數值面板</div>
-        <div className="listItemSub">
-          總評：{curSave?.player.panel?.overall ?? 0}{"\n"}
-          生存：{curSave?.player.panel?.survival ?? 0}｜戰鬥：{curSave?.player.panel?.combat ?? 0}{"\n"}
-          智略：{curSave?.player.panel?.strategy ?? 0}｜魅力：{curSave?.player.panel?.charm ?? 0}{"\n"}
-          異能：{curSave?.player.panel?.abilityPower ?? 0}｜壓力：{curSave?.player.panel?.stress ?? 0}
-        </div>
-      </div>
-    )}
+                  {profileTab === "panel" && (
+                    <div className="listItem">
+                      <div className="listItemTitle">個人數值面板</div>
+                      <div className="listItemSub">
+                        總評：{p.panel?.overall ?? 0}
+                        {"\n"}生存：{p.panel?.survival ?? 0}｜戰鬥：{p.panel?.combat ?? 0}
+                        {"\n"}智略：{p.panel?.strategy ?? 0}｜魅力：{p.panel?.charm ?? 0}
+                        {"\n"}異能：{p.panel?.abilityPower ?? 0}｜壓力：{p.panel?.stress ?? 0}
+                      </div>
+                    </div>
+                  )}
 
-    {profileTab === "relations" && (
-      <div className="listItem">
-        <div className="listItemTitle">關係狀態</div>
-        <div className="listItemSub">
-          曖昧中人數：{curSave?.player.flirtCount ?? 0}{"\n"}
-          已定義關係：
-          {(curSave?.player.definedRelationships || []).length === 0
-            ? " 無"
-            : "\n" + (curSave?.player.definedRelationships || [])
-                .map(r => `- ${r.label}（${r.npcId}）`)
-                .join("\n")}
-        </div>
-      </div>
-    )}
+                  {profileTab === "relations" && (
+                    <div className="listItem">
+                      <div className="listItemTitle">關係狀態</div>
+                      <div className="listItemSub">
+                        曖昧中人數：{p.flirtCount ?? 0}
+                        {"\n"}已定義關係：
+                        {(p.definedRelationships || []).length === 0
+                          ? " 無"
+                          : "\n" + (p.definedRelationships || []).map((r: any) => `- ${r.label}（${r.npcId}）`).join("\n")}
+                      </div>
+                    </div>
+                  )}
 
-    {profileTab === "reputation" && (
-      <div className="listItem">
-        <div className="listItemTitle">名聲</div>
-        <div className="listItemSub">
-          標籤：{(curSave?.player.reputationTags || []).join("、") || "—"}{"\n"}
-          風評：{curSave?.player.publicOpinion || "（系統將更新）"}
-        </div>
-      </div>
-    )}
+                  {profileTab === "reputation" && (
+                    <div className="listItem">
+                      <div className="listItemTitle">名聲</div>
+                      <div className="listItemSub">
+                        標籤：{(p.reputationTags || []).join("、") || "—"}
+                        {"\n"}風評：{p.publicOpinion || "（系統將更新）"}
+                      </div>
+                    </div>
+                  )}
 
-    {profileTab === "achievements" && (
-      <div className="listItem">
-        <div className="listItemTitle">成就</div>
-        <div className="listItemSub">
-          {(curSave?.player.achievements || []).length === 0
-            ? "尚無成就。"
-            : (curSave?.player.achievements || []).map(a => `• ${a}`).join("\n")}
-        </div>
-      </div>
-    )}
+                  {profileTab === "achievements" && (
+                    <div className="listItem">
+                      <div className="listItemTitle">成就</div>
+                      <div className="listItemSub">
+                        {(p.achievements || []).length === 0 ? "尚無成就。" : (p.achievements || []).map((a: any) => `• ${a}`).join("\n")}
+                      </div>
+                    </div>
+                  )}
 
-    <div className="listItem">
-      <div className="listItemTitle">男人 NPC 資料庫</div>
-      <div className="listItemSub">已匯入（public/secret）。你不用打開 secret 檔案。</div>
-    </div>
-  </>
-)}
+                  <div className="listItem">
+                    <div className="listItemTitle">男人 NPC 資料庫</div>
+                    <div className="listItemSub">已匯入（public/secret）。你不用打開 secret 檔案。</div>
+                  </div>
+                </>
+              )}
 
               {drawer === "recap" && (
                 <>
                   {(logs || [])
-                    .filter((l) => l.kind === "narrative")
+                    .filter((l) => (l as any).kind === "narrative")
                     .slice(-10)
                     .map((l) => (
-                      <div key={l.logId} className="listItem">
+                      <div key={(l as any).logId} className="listItem">
                         <div className="listItemSub" style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
-                          {l.text}
+                          {(l as any).text}
                         </div>
                       </div>
                     ))}
-                  {(!logs || logs.filter((l) => l.kind === "narrative").length === 0) && (
+                  {(!logs || logs.filter((l) => (l as any).kind === "narrative").length === 0) && (
                     <div className="listItem">
                       <div className="listItemSub">尚無回顧內容。</div>
                     </div>
@@ -784,24 +812,30 @@ async function onDelete(saveId: string) {
               {drawer === "saves" && (
                 <>
                   {(saves || []).map((s) => (
-                    <div key={s.saveId} className="listItem">
-                      <div className="listItemTitle">{s.title}</div>
+                    <div key={(s as any).saveId} className="listItem">
+                      <div className="listItemTitle">{(s as any).title}</div>
                       <div className="listItemSub">
-                        Day {s.progress.day} · 段落 {s.progress.segment}
+                        Day {(s as any).progress?.day ?? 1} · 段落 {(s as any).progress?.segment ?? 0}
                       </div>
                       <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
-                        <button className="btnPill btnPillPrimary" onClick={async () => { closeDrawer(); await openSave(s.saveId, true); }}>
+                        <button
+                          className="btnPill btnPillPrimary"
+                          onClick={async () => {
+                            closeDrawer();
+                            await openSave((s as any).saveId, true);
+                          }}
+                        >
                           進入
                         </button>
-                         <button className="btnPill" onClick={async () => onDuplicate(s.saveId)}>
-                           複製
-                         </button>
-                         <button className="btnPill" onClick={async () => onRename(s.saveId)}>
-                           命名
-                         </button>
-                         <button className="btnPill" onClick={async () => onDelete(s.saveId)}>
-                           刪除
-                         </button>
+                        <button className="btnPill" onClick={async () => onDuplicate((s as any).saveId)}>
+                          複製
+                        </button>
+                        <button className="btnPill" onClick={async () => onRename((s as any).saveId)}>
+                          命名
+                        </button>
+                        <button className="btnPill" onClick={async () => onDelete((s as any).saveId)}>
+                          刪除
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -820,7 +854,7 @@ async function onDelete(saveId: string) {
   );
 }
 
-function Section(props: { title: string; open: boolean; onToggle: ()=>void; children: React.ReactNode }) {
+function Section(props: { title: string; open: boolean; onToggle: () => void; children: React.ReactNode }) {
   return (
     <div className="sec">
       <div className="secHead">
@@ -847,34 +881,21 @@ function KV(props: { label: string; children: React.ReactNode }) {
 }
 
 function isLastLog(target: LogRow, all: LogRow[]) {
-  return all.length > 0 && all[all.length - 1].logId === target.logId;
+  const t: any = target as any;
+  const a: any[] = all as any[];
+  return a.length > 0 && a[a.length - 1]?.logId === t.logId;
 }
 
-function getCastPlaceholders() {
-  // 圖一/圖二那種底部圓形列：先用假資料（不爆雷、不接男主庫）
-  return [
-    { id: "a", label: "alpha", initial: "A" },
-    { id: "b", label: "bravo", initial: "B" },
-    { id: "c", label: "cobalt", initial: "C" },
-    { id: "d", label: "delta", initial: "D" },
-    { id: "e", label: "echo", initial: "E" },
-    { id: "f", label: "foxtrot", initial: "F" },
-  ];
-}
-
+/* ===== recent cast from input logs ===== */
 function extractTargetsFromInput(text: string): string[] {
   const s = (text || "").trim();
   if (!s) return [];
 
-  // 支援：找 X / 跟 X / 問 X / 叫 X
-  // 也支援自然語句：「我去找X聊聊」「我跟X守夜」
   const out: string[] = [];
 
-  // 空白分詞命令
   const m1 = s.match(/^(找|跟|問|叫)\s+([^\s，,。！？!?\n]{1,12})/);
   if (m1) out.push(m1[2]);
 
-  // 自然語句
   const m2 = s.match(/(找|跟|問|叫)([^\s，,。！？!?\n]{1,12})/g);
   if (m2) {
     for (const chunk of m2) {
@@ -883,16 +904,16 @@ function extractTargetsFromInput(text: string): string[] {
     }
   }
 
-  // 去重
   return Array.from(new Set(out)).slice(0, 12);
 }
 
 function getRecentCastFromLogs(logs: LogRow[], fallback = 6) {
+  const a: any[] = logs as any[];
   const targets: string[] = [];
-  for (let i = logs.length - 1; i >= 0; i--) {
-    const l = logs[i];
-    if (l.kind !== "input") continue;
-    const names = extractTargetsFromInput(l.text);
+  for (let i = a.length - 1; i >= 0; i--) {
+    const l = a[i];
+    if (l?.kind !== "input") continue;
+    const names = extractTargetsFromInput(String(l.text || ""));
     for (const n of names) {
       if (!targets.includes(n)) targets.push(n);
       if (targets.length >= fallback) break;
@@ -900,7 +921,6 @@ function getRecentCastFromLogs(logs: LogRow[], fallback = 6) {
     if (targets.length >= fallback) break;
   }
 
-  // 不夠就補 placeholder（保持排版滿）
   const fillers = ["alpha", "bravo", "cobalt", "delta", "echo", "foxtrot", "moss", "nova"];
   while (targets.length < fallback) {
     const f = fillers[targets.length % fillers.length];
