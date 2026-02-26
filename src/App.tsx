@@ -61,7 +61,6 @@ function IconClock() {
   );
 }
 function KeyIcon() {
-  // 舊式鑰匙 / skeleton key（不是 emoji）
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
       <path
@@ -71,7 +70,6 @@ function KeyIcon() {
     </svg>
   );
 }
-
 function IconTheme() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
@@ -86,13 +84,14 @@ function IconTheme() {
 export default function App() {
   const [mode, setMode] = useState<Mode>("cover");
   const [drawer, setDrawer] = useState<DrawerKey>(null);
-  const [themeMode, setThemeMode] = useState<"system"|"light"|"dark">("system");
+  const [themeMode, setThemeMode] = useState<"system" | "light" | "dark">("system");
 
-useEffect(() => {
-  const root = document.documentElement;
-  if (themeMode === "system") root.removeAttribute("data-theme");
-  else root.setAttribute("data-theme", themeMode);
-}, [themeMode]);
+  useEffect(() => {
+    const root = document.documentElement;
+    if (themeMode === "system") root.removeAttribute("data-theme");
+    else root.setAttribute("data-theme", themeMode);
+  }, [themeMode]);
+
   const [profileTab, setProfileTab] = useState<
     "base" | "persona" | "panel" | "relations" | "reputation" | "achievements"
   >("base");
@@ -101,11 +100,14 @@ useEffect(() => {
   const [curSave, setCurSave] = useState<SaveRow | null>(null);
   const [logs, setLogs] = useState<LogRow[]>([]);
   const [input, setInput] = useState("");
+
   // ===== Bubble Cast Drag (UI only) =====
   const railRef = useRef<HTMLDivElement | null>(null);
   const [bubblePos, setBubblePos] = useState<Record<string, { x: number; y: number }>>({});
   const [dragId, setDragId] = useState<string | null>(null);
   const dragOffset = useRef<{ dx: number; dy: number }>({ dx: 0, dy: 0 });
+  const dragMoved = useRef(false);
+  const lastDragEndTs = useRef(0);
 
   function clamp(n: number, a: number, b: number) {
     return Math.max(a, Math.min(b, n));
@@ -123,6 +125,7 @@ useEffect(() => {
       dy: e.clientY - (rect.top + cur.y),
     };
 
+    dragMoved.current = false;
     setDragId(id);
     (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
     e.preventDefault();
@@ -136,10 +139,8 @@ useEffect(() => {
       if (!host) return;
 
       const rect = host.getBoundingClientRect();
-
-      // bubble 本體寬約 72，高約 86（含名字）
-      const BW = 72;
-      const BH = 86;
+      const BW = 74; // bubble 寬（含陰影）
+      const BH = 92; // bubble 高（含名字）
 
       const nx = ev.clientX - rect.left - dragOffset.current.dx;
       const ny = ev.clientY - rect.top - dragOffset.current.dy;
@@ -147,10 +148,12 @@ useEffect(() => {
       const x = clamp(nx, 0, rect.width - BW);
       const y = clamp(ny, 0, rect.height - BH);
 
+      dragMoved.current = true;
       setBubblePos((p) => ({ ...p, [dragId]: { x, y } }));
     }
 
     function onUp() {
+      lastDragEndTs.current = Date.now();
       setDragId(null);
     }
 
@@ -206,7 +209,6 @@ useEffect(() => {
   useEffect(() => {
     refreshSaves();
     (async () => {
-      // 男人庫只匯入一次：不重複灌資料
       const seeded = await getMeta("npc_seed_v1");
       if (seeded) return;
 
@@ -254,7 +256,7 @@ useEffect(() => {
     if (!fPrinciples.trim()) setFPrinciples("不欠人情、不賣隊友");
   }
 
-    async function startLife() {
+  async function startLife() {
     try {
       const player: any = makeEmptyPlayer();
 
@@ -403,51 +405,48 @@ useEffect(() => {
     <div className="app">
       <div className="shell">
         {mode === "cover" && (
-  <div className="nativeScreen">
-    {/* Top App Bar */}
-    <div className="nativeTopBar">
-      <div className="nativeTopLeft">
-        <div className="nativeAppName">Game_PWA</div>
-        <div className="nativeAppSub">末世戀愛生存互動式小說 · IndexedDB</div>
-      </div>
+          <div className="nativeScreen">
+            <div className="nativeTopBar">
+              <div className="nativeTopLeft">
+                <div className="nativeAppName">Game_PWA</div>
+                <div className="nativeAppSub">末世戀愛生存互動式小說 · IndexedDB</div>
+              </div>
 
-      <div className="nativeTopRight">
-        <button className="nativeIconBtn" aria-label="檔案櫃" title="檔案櫃" onClick={() => setDrawer("saves")}>
-          <IconFolder />
-        </button>
-      </div>
-    </div>
+              <div className="nativeTopRight">
+                <button className="nativeIconBtn" aria-label="檔案櫃" title="檔案櫃" onClick={() => setDrawer("saves")}>
+                  <IconFolder />
+                </button>
+              </div>
+            </div>
 
-    {/* Main Card */}
-    <div className="nativeMain">
-      <div className="nativeHeroCard">
-        <div className="nativeHeroTitle">進入世界</div>
-        <div className="nativeHeroText">
-  {"每段正文後輸入「我做了什麼」，世界會記住。\n自然語言為主；可選指令（不強迫）。"}
-</div>
+            <div className="nativeMain">
+              <div className="nativeHeroCard">
+                <div className="nativeHeroTitle">進入世界</div>
+                <div className="nativeHeroText">
+                  {"每段正文後輸入「我做了什麼」，世界會記住。\n自然語言為主；可選指令（不強迫）。"}
+                </div>
 
-        <div className="nativeChips">
-  <span className="nativeChip">可選指令</span>
-  <span className="nativeChip">關係混合制</span>
-  <span className="nativeChip">異能</span>
-</div>
-      </div>
-    </div>
+                <div className="nativeChips">
+                  <span className="nativeChip">可選指令</span>
+                  <span className="nativeChip">關係混合制</span>
+                  <span className="nativeChip">異能</span>
+                </div>
+              </div>
+            </div>
 
-    {/* Bottom Dock */}
-    <div className="nativeDock">
-      <button className="dockBtn dockPrimary" disabled={!canContinue} onClick={onContinue}>
-        繼續
-      </button>
-      <button className="dockBtn" onClick={onNew}>
-        新開始
-      </button>
-      <button className="dockBtn" disabled={!canContinue} onClick={onLoadMostRecent}>
-        讀檔
-      </button>
-    </div>
-  </div>
-)}
+            <div className="nativeDock">
+              <button className="dockBtn dockPrimary" disabled={!canContinue} onClick={onContinue}>
+                繼續
+              </button>
+              <button className="dockBtn" onClick={onNew}>
+                新開始
+              </button>
+              <button className="dockBtn" disabled={!canContinue} onClick={onLoadMostRecent}>
+                讀檔
+              </button>
+            </div>
+          </div>
+        )}
 
         {mode === "setup" && (
           <div className="bgStage">
@@ -582,7 +581,7 @@ useEffect(() => {
           </div>
         )}
 
-             {mode === "play" && curSave && (
+        {mode === "play" && curSave && (
           <div className="playStage">
             <div className="playBG" />
 
@@ -659,31 +658,70 @@ useEffect(() => {
                       )}
                     </div>
 
-                    {/* ✅ castRail：在 storyFramePad 後、storyFrame 結尾前 */}
-                    <div className="castRail" ref={castRailRef}>
+                    <div className="castRail">
                       <div className="castLabel">active member</div>
-                      <div className="castRow">
-                        {getRecentCastFromLogs(logs, 6).map((c) => (
-                          <button
-                            key={c.id}
-                            className="castItem castBtn"
-                            onPointerDown={(e) => onCastPointerDown(e, c.id)}
-                            style={
-                              castPos[c.id]
-                                ? { transform: `translate3d(${castPos[c.id].x}px, ${castPos[c.id].y}px, 0)` }
-                                : undefined
-                            }
-                            onClick={() => {
-                              const t = input ? input + "\n" : "";
-                              const opts = [`找 ${c.label} 深聊`, `跟 ${c.label} 守夜`, `問 ${c.label} 一件事`];
-                              const pick = opts[Math.floor(Math.random() * opts.length)];
-                              setInput(t + pick);
-                            }}
-                          >
-                            <div className="avatar">{c.initial}</div>
-                            <div>{c.label}</div>
-                          </button>
-                        ))}
+
+                      <div
+                        className="castPlayground"
+                        ref={railRef}
+                        style={{
+                          position: "relative",
+                          height: 124,
+                          borderRadius: 20,
+                          border: "1px solid rgba(255,255,255,.10)",
+                          background: "rgba(0,0,0,.18)",
+                          overflow: "hidden",
+                        }}
+                      >
+                        {getRecentCastFromLogs(logs, 6).map((c, i) => {
+                          const baseX = 10 + i * 72;
+                          const baseY = 10;
+                          const pos = bubblePos[c.id] || { x: baseX, y: baseY };
+
+                          return (
+                            <button
+                              key={c.id}
+                              className={`castBubble castBtn ${dragId === c.id ? "dragging" : ""}`}
+                              onPointerDown={(e) => onBubbleDown(c.id, e)}
+                              onClick={() => {
+                                if (Date.now() - lastDragEndTs.current < 220) return;
+                                const t = input ? input + "\n" : "";
+                                const opts = [`找 ${c.label} 深聊`, `跟 ${c.label} 守夜`, `問 ${c.label} 一件事`];
+                                const pick = opts[Math.floor(Math.random() * opts.length)];
+                                setInput(t + pick);
+                              }}
+                              style={
+                                {
+                                  position: "absolute",
+                                  left: `${pos.x}px`,
+                                  top: `${pos.y}px`,
+                                  width: 70,
+                                  background: "transparent",
+                                  border: "none",
+                                  padding: 0,
+                                  touchAction: "none",
+                                  ["--d" as any]: `${(i % 6) * 0.35}s`,
+                                } as React.CSSProperties
+                              }
+                              aria-label={`active member ${c.label}`}
+                            >
+                              <div className="avatar">{c.initial}</div>
+                              <div
+                                className="castName"
+                                style={{
+                                  marginTop: 6,
+                                  fontSize: 12,
+                                  fontWeight: 800,
+                                  color: "rgba(234,240,255,.88)",
+                                  textAlign: "center",
+                                  textShadow: "0 8px 24px rgba(0,0,0,.45)",
+                                }}
+                              >
+                                {c.label}
+                              </div>
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
@@ -705,63 +743,8 @@ useEffect(() => {
             </div>
           </div>
         )}
-
-            {/* ✅ castRail：在 storyFramePad 後、storyFrame 結尾前 */}
-                        <div className="castRail">
-              <div className="castLabel">active member</div>
-
-              <div className="castPlayground" ref={railRef}>
-                {getRecentCastFromLogs(logs, 6).map((c, i) => {
-                  const baseX = 10 + i * 72;     // 初始排一排
-                  const baseY = 10;              // 初始高度
-                  const pos = bubblePos[c.id] || { x: baseX, y: baseY };
-
-                  return (
-                    <button
-                      key={c.id}
-                      className={`castBubble castBtn ${dragId === c.id ? "dragging" : ""}`}
-                      onPointerDown={(e) => onBubbleDown(c.id, e)}
-                      onClick={() => {
-                        // 拖拽放開後仍可點（不改玩法）
-                        const t = input ? input + "\n" : "";
-                        const opts = [`找 ${c.label} 深聊`, `跟 ${c.label} 守夜`, `問 ${c.label} 一件事`];
-                        const pick = opts[Math.floor(Math.random() * opts.length)];
-                        setInput(t + pick);
-                      }}
-                      style={
-                        {
-                          left: `${pos.x}px`,
-                          top: `${pos.y}px`,
-                          ["--d" as any]: `${(i % 6) * 0.35}s`,
-                        } as React.CSSProperties
-                      }
-                    >
-                      <div className="avatar">{c.initial}</div>
-                      <div className="castName">{c.label}</div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-    </div>
-
-    <div className="actionBar">
-      <div className="actionInner">
-        <textarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="我做了什麼（自然語言為主；可選指令：去 交易站 探路）"
-        />
-        <button className="sendBtn" onClick={commitInput}>
-          送出
-        </button>
       </div>
-    </div>
-  </div>
-)}
 
-      {/* Drawers */}
       {drawer && <div className="drawerBackdrop" onClick={closeDrawer} aria-hidden="true" />}
       {drawer && (
         <div className="drawer" role="dialog" aria-modal="true">
@@ -1040,7 +1023,6 @@ function isLastLog(target: LogRow, all: LogRow[]) {
   return a.length > 0 && a[a.length - 1]?.logId === t.logId;
 }
 
-/* ===== recent cast from input logs ===== */
 function extractTargetsFromInput(text: string): string[] {
   const s = (text || "").trim();
   if (!s) return [];
