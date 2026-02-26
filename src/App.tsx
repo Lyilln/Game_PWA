@@ -646,6 +646,7 @@ useEffect(() => {
           </div>
         </div>
       </div>
+
     </div>
 
     <div className="actionBar">
@@ -663,7 +664,6 @@ useEffect(() => {
   </div>
 )}
       </div>
-    </div>
 
       {/* Drawers */}
       {drawer && <div className="drawerBackdrop" onClick={closeDrawer} aria-hidden="true" />}
