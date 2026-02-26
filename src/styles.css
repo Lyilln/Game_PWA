@@ -528,29 +528,45 @@ textarea{ min-height: 84px; resize: vertical; }
   color: rgba(18,20,40,.80);
 }
 
-/* Active member rail (pill) overlaps bottom of story frame */
-.castRail{
-  position:absolute;
-  left: 14px;
-  right: 14px;
-  bottom: 14px;
+/* ====== Bubble Cast Rail (iOS-ish) ====== */
+.storyFrame{ position: relative; }
+.storyFramePad{ padding-bottom: 128px; } /* 避免被底座蓋到 */
 
+.castRail{
+  position: absolute;
+  left: 14px; right: 14px; bottom: 14px;
   border-radius: 26px;
-  border: 1px solid var(--stroke);
-  background: linear-gradient(180deg, var(--glass), var(--glass2));
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.07);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
-  box-shadow: 0 24px 80px var(--shadow);
+  box-shadow: 0 22px 70px rgba(0,0,0,.35);
+  padding: 12px 12px 12px;
+  overflow: hidden;
+}
 
-  padding: 12px 12px 10px;
+.castRail::before{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  background:
+    radial-gradient(160px 120px at 12% 20%, rgba(173,121,255,.18), transparent 60%),
+    radial-gradient(180px 140px at 88% 30%, rgba(122,162,255,.16), transparent 62%),
+    radial-gradient(240px 180px at 58% 90%, rgba(73,255,224,.10), transparent 62%);
+  opacity:.9;
+  filter: blur(18px);
+  pointer-events:none;
 }
 
 .castLabel{
+  position: relative;
+  z-index: 1;
   display:inline-flex;
   align-items:center;
-  padding: 9px 12px;
+  gap:10px;
+  padding: 8px 10px;
   border-radius: 999px;
-  border: 1px solid var(--stroke2);
+  border: 1px solid rgba(255,255,255,.10);
   background: rgba(0,0,0,.22);
   color: rgba(234,240,255,.82);
   font-weight: 900;
@@ -558,40 +574,88 @@ textarea{ min-height: 84px; resize: vertical; }
   margin-bottom: 10px;
 }
 
-.castRow{
-  display:flex;
-  gap:12px;
-  overflow-x:auto;
-  padding-bottom: 4px;
+.castPlayground{
+  position: relative;
+  z-index: 1;
+  height: 86px;
+  border-radius: 20px;
+  border: 1px dashed rgba(255,255,255,.10);
+  background: rgba(0,0,0,.14);
+  overflow: hidden;
+  touch-action: none; /* 讓拖拽更穩 */
 }
-.castRow::-webkit-scrollbar{ display:none; }
 
-.castItem{
-  min-width: 72px;
+@keyframes bubbleBob {
+  0%   { transform: translate3d(0, 0, 0); }
+  50%  { transform: translate3d(0, -6px, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+@keyframes bubbleDrift {
+  0%   { filter: brightness(1); }
+  50%  { filter: brightness(1.03); }
+  100% { filter: brightness(1); }
+}
+
+.castBubble{
+  position: absolute;
+  width: 72px;
   display:flex;
   flex-direction:column;
   align-items:center;
   gap:8px;
-  color: rgba(234,240,255,.86);
-  font-size: 12px;
-  transition: transform var(--t-fast) var(--ease), filter var(--t-fast) var(--ease);
+
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+
+  animation:
+    bubbleBob 2.8s var(--ease-soft) infinite,
+    bubbleDrift 3.6s var(--ease-soft) infinite;
+  animation-delay: var(--d, 0s);
+  will-change: transform;
 }
-.castItem:active{ transform: translateY(1px) scale(.98); filter: brightness(.98); }
+
+.castBubble.dragging{
+  animation: none;
+  z-index: 5;
+}
 
 .avatar{
   height: 56px;
   width: 56px;
   border-radius: 999px;
-  border: 2px solid rgba(255,255,255,.18);
+  border: 2px solid rgba(255,255,255,.20);
   background:
-    radial-gradient(18px 18px at 30% 30%, rgba(var(--lav), .35), transparent 60%),
-    radial-gradient(18px 18px at 70% 35%, rgba(var(--sky), .28), transparent 60%),
+    radial-gradient(18px 18px at 30% 30%, rgba(173,121,255,.40), transparent 60%),
+    radial-gradient(18px 18px at 70% 35%, rgba(122,162,255,.32), transparent 60%),
     rgba(255,255,255,.06);
-  box-shadow: 0 16px 40px var(--shadow);
+  box-shadow: 0 16px 40px rgba(0,0,0,.35);
   display:grid;
   place-items:center;
   font-weight: 950;
   letter-spacing:.4px;
+
+  transition: transform var(--dur-fast) var(--ease-out), filter var(--dur-fast) var(--ease-out);
+}
+.castBubble:active .avatar{
+  transform: scale(.96);
+  filter: brightness(.98);
+}
+
+.castName{
+  font-size: 12px;
+  color: rgba(234,240,255,.85);
+  text-align:center;
+  max-width: 70px;
+  overflow:hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.castBtn{
+  background: transparent;
+  border: none;
+  padding: 0;
 }
 
 /* iMessage-like input dock */
