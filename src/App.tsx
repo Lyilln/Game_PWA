@@ -728,6 +728,7 @@ export default function App() {
     </div>
   </div>
 )}
+</div>
 
       {drawer && <div className="drawerBackdrop" onClick={closeDrawer} aria-hidden="true" />}
       {drawer && (
