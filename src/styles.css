@@ -594,3 +594,10 @@ textarea{ min-height: 84px; resize: vertical; }
   .kv2{ grid-template-columns: 1fr; }
   .sendBtn{ min-width: 72px; }
 }
+
+/* cast item button reset (avoid inline style={{...}} parse issues) */
+.castBtn{
+  background: transparent;
+  border: none;
+  padding: 0;
+}
