@@ -518,118 +518,150 @@ useEffect(() => {
         )}
 
         {mode === "play" && curSave && (
-          <div className="playStage">
-            <div className="playBG" />
-            <div className="playContent">
-              <div className="hud">
-                <div className="hudLeft">
-                  <div className="hudTitle">{(curSave as any).title}</div>
-                  <div className="hudSub">
-                    Day {prog.day ?? 1} · 段落 {prog.segment ?? 0}
-                  </div>
-                </div>
-                <div className="iconRow">
-                  <button className="iconBtn" aria-label="主控面板" title="主控面板" onClick={() => setDrawer("profile")}>
-                    <KeyIcon />
-                  </button>
-                  <button
-                    className="iconBtn"
-                    aria-label="切換主題"
-                    title="切換主題"
-  onClick={() => setThemeMode(t => t === "system" ? "dark" : t === "dark" ? "light" : "system")}
->
-  <IconTheme />
-</button>
-                  <button className="iconBtn" aria-label="回顧" title="回顧" onClick={() => setDrawer("recap")}>
-                    <IconClock />
-                  </button>
-                  <button className="iconBtn" aria-label="檔案櫃" title="檔案櫃" onClick={() => setDrawer("saves")}>
-                    <IconFolder />
-                  </button>
-                  <button className="iconBtn" aria-label="回封面" title="回封面" onClick={() => setMode("cover")}>
-                    <IconHome />
-                  </button>
-                </div>
+  <div className="playStage">
+    <div className="playBG" />
+
+    <div className="playContent">
+      <div className="hud">
+        <div className="hudLeft">
+          <div className="hudTitle">{(curSave as any).title}</div>
+          <div className="hudSub">
+            Day {prog.day ?? 1} · 段落 {prog.segment ?? 0}
+          </div>
+        </div>
+
+        <div className="iconRow">
+          <button
+            className="iconBtn"
+            aria-label="主控面板"
+            title="主控面板"
+            onClick={() => setDrawer("profile")}
+          >
+            <KeyIcon />
+          </button>
+
+          <button
+            className="iconBtn"
+            aria-label="切換主題"
+            title="切換主題"
+            onClick={() =>
+              setThemeMode((t) => (t === "system" ? "dark" : t === "dark" ? "light" : "system"))
+            }
+          >
+            <IconTheme />
+          </button>
+
+          <button
+            className="iconBtn"
+            aria-label="回顧"
+            title="回顧"
+            onClick={() => setDrawer("recap")}
+          >
+            <IconClock />
+          </button>
+
+          <button
+            className="iconBtn"
+            aria-label="檔案櫃"
+            title="檔案櫃"
+            onClick={() => setDrawer("saves")}
+          >
+            <IconFolder />
+          </button>
+
+          <button
+            className="iconBtn"
+            aria-label="回封面"
+            title="回封面"
+            onClick={() => setMode("cover")}
+          >
+            <IconHome />
+          </button>
+        </div>
+      </div>
+
+      <div className="mediaCard">
+        <div className="mediaInner">
+          <div className="storyFrame">
+            <div className="storyFramePad">
+              <div className="storyText">
+                {(latestNarrative as any)?.text || "（尚無正文）"}
               </div>
 
-              <div className="mediaCard">
-                <div className="mediaInner">
-                  <div className="storyFrame">
-                    <div className="storyFramePad">
-                      <div className="storyFrame">
-  <div className="storyFramePad">
-    ...正文/風向/關鍵時刻...
-  </div>
+              <div className="windMini">
+                {(latestWind as any)?.text
+                  ? String((latestWind as any).text).split("\n").slice(0, 3).join("\n")
+                  : "（尚無風向）"}
+              </div>
 
-  <div className="castRail">
-    <div className="castLabel">active member</div>
-    <div className="castRow">
-      {getRecentCastFromLogs(logs, 6).map((c) => (
-        <button
-          key={c.id}
-          className="castItem castBtn"
-          onClick={() => {
-            const t = input ? input + "\n" : "";
-            const opts = [`找 ${c.label} 深聊`, `跟 ${c.label} 守夜`, `問 ${c.label} 一件事`];
-            const pick = opts[Math.floor(Math.random() * opts.length)];
-            setInput(t + pick);
-          }}
-        >
-          <div className="avatar">{c.initial}</div>
-          <div>{c.label}</div>
-        </button>
-      ))}
-    </div>
-  </div>
-</div>
-                      <div className="storyText">{(latestNarrative as any)?.text || "（尚無正文）"}</div>
-
-                      <div className="windMini">
-                        {(latestWind as any)?.text
-                          ? String((latestWind as any).text).split("\n").slice(0, 3).join("\n")
-                          : "（尚無風向）"}
-                      </div>
-
-                      {lastMajor && isLastLog(lastMajor, logs) && (
-                        <div style={{ marginTop: 12 }}>
-                          <div className="windMini" style={{ background: "rgba(255,255,255,.06)" }}>
-                            <b style={{ color: "rgba(234,240,255,.92)" }}>關鍵時刻</b>
-                            <div style={{ marginTop: 10 }}>
-                              {(((lastMajor as any).data?.options || []) as string[]).map((opt: string, i: number) => (
-                                <button
-                                  key={i}
-                                  className="btnPill"
-                                  style={{ width: "100%", marginBottom: 10 }}
-                                  onClick={() => chooseMajor(opt)}
-                                >
-                                  {opt}
-                                </button>
-                              ))}
-                              <button className="btnPill" style={{ width: "100%" }} onClick={() => chooseMajor("我就這樣做。")}>
-                                我就這樣做。
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
+              {lastMajor && isLastLog(lastMajor, logs) && (
+                <div style={{ marginTop: 12 }}>
+                  <div className="windMini" style={{ background: "rgba(255,255,255,.06)" }}>
+                    <b style={{ color: "rgba(234,240,255,.92)" }}>關鍵時刻</b>
+                    <div style={{ marginTop: 10 }}>
+                      {(((lastMajor as any).data?.options || []) as string[]).map((opt: string, i: number) => (
+                        <button
+                          key={i}
+                          className="btnPill"
+                          style={{ width: "100%", marginBottom: 10 }}
+                          onClick={() => chooseMajor(opt)}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                      <button
+                        className="btnPill"
+                        style={{ width: "100%" }}
+                        onClick={() => chooseMajor("我就這樣做。")}
+                      >
+                        我就這樣做。
+                      </button>
                     </div>
                   </div>
+                </div>
+              )}
+            </div>
 
-            <div className="actionBar">
-              <div className="actionInner">
-                <textarea
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="我做了什麼（自然語言為主；可選指令：去 交易站 探路）"
-                />
-                <button className="sendBtn" onClick={commitInput}>
-                  送出
-                </button>
+            {/* ✅ castRail：在 storyFramePad 後、storyFrame 結尾前 */}
+            <div className="castRail">
+              <div className="castLabel">active member</div>
+              <div className="castRow">
+                {getRecentCastFromLogs(logs, 6).map((c) => (
+                  <button
+                    key={c.id}
+                    className="castItem castBtn"
+                    onClick={() => {
+                      const t = input ? input + "\n" : "";
+                      const opts = [`找 ${c.label} 深聊`, `跟 ${c.label} 守夜`, `問 ${c.label} 一件事`];
+                      const pick = opts[Math.floor(Math.random() * opts.length)];
+                      setInput(t + pick);
+                    }}
+                  >
+                    <div className="avatar">{c.initial}</div>
+                    <div>{c.label}</div>
+                  </button>
+                ))}
               </div>
             </div>
           </div>
-        )}
+        </div>
       </div>
+    </div>
+
+    <div className="actionBar">
+      <div className="actionInner">
+        <textarea
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="我做了什麼（自然語言為主；可選指令：去 交易站 探路）"
+        />
+        <button className="sendBtn" onClick={commitInput}>
+          送出
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
       {/* Drawers */}
       {drawer && <div className="drawerBackdrop" onClick={closeDrawer} aria-hidden="true" />}
