@@ -581,169 +581,153 @@ export default function App() {
           </div>
         )}
 
-        {mode === "play" && curSave && (
-          <div className="playStage">
-            <div className="playBG" />
+        /* 刪除：你現在 play 的 mediaCard/storyFrame/castRail 那整段 */
+/* 貼上：以下「play 的卡片區塊」完整替換（只替換 JSX 內那一塊，不動玩法函式） */
 
-            <div className="playContent">
-              <div className="hud">
-                <div className="hudLeft">
-                  <div className="hudTitle">{(curSave as any).title}</div>
-                  <div className="hudSub">
-                    Day {prog.day ?? 1} · 段落 {prog.segment ?? 0}
-                  </div>
-                </div>
+{mode === "play" && curSave && (
+  <div className="playStage">
+    <div className="playBG" />
 
-                <div className="iconRow">
-                  <button className="iconBtn" aria-label="主控面板" title="主控面板" onClick={() => setDrawer("profile")}>
-                    <KeyIcon />
-                  </button>
+    <div className="playContent modeWrap">
+      <div className="hud">
+        <div className="hudLeft">
+          <div className="hudTitle">{(curSave as any).title}</div>
+          <div className="hudSub">
+            Day {prog.day ?? 1} · 段落 {prog.segment ?? 0}
+          </div>
+        </div>
 
-                  <button
-                    className="iconBtn"
-                    aria-label="切換主題"
-                    title="切換主題"
-                    onClick={() => setThemeMode((t) => (t === "system" ? "dark" : t === "dark" ? "light" : "system"))}
-                  >
-                    <IconTheme />
-                  </button>
+        <div className="iconRow">
+          <button className="iconBtn" aria-label="主控面板" title="主控面板" onClick={() => setDrawer("profile")}>
+            <KeyIcon />
+          </button>
 
-                  <button className="iconBtn" aria-label="回顧" title="回顧" onClick={() => setDrawer("recap")}>
-                    <IconClock />
-                  </button>
+          <button
+            className="iconBtn"
+            aria-label="切換主題"
+            title="切換主題"
+            onClick={() => setThemeMode((t) => (t === "system" ? "dark" : t === "dark" ? "light" : "system"))}
+          >
+            <IconTheme />
+          </button>
 
-                  <button className="iconBtn" aria-label="檔案櫃" title="檔案櫃" onClick={() => setDrawer("saves")}>
-                    <IconFolder />
-                  </button>
+          <button className="iconBtn" aria-label="回顧" title="回顧" onClick={() => setDrawer("recap")}>
+            <IconClock />
+          </button>
 
-                  <button className="iconBtn" aria-label="回封面" title="回封面" onClick={() => setMode("cover")}>
-                    <IconHome />
-                  </button>
-                </div>
+          <button className="iconBtn" aria-label="檔案櫃" title="檔案櫃" onClick={() => setDrawer("saves")}>
+            <IconFolder />
+          </button>
+
+          <button className="iconBtn" aria-label="回封面" title="回封面" onClick={() => setMode("cover")}>
+            <IconHome />
+          </button>
+        </div>
+      </div>
+
+      <div className="mediaCard">
+        <div className="mediaInner">
+          {/* 大媒體卡（主視覺） */}
+          <div className="bigMedia">
+            <div className="bigMediaPad">
+              <div className="storyText">{(latestNarrative as any)?.text || "（尚無正文）"}</div>
+
+              <div className="windMini">
+                {(latestWind as any)?.text
+                  ? String((latestWind as any).text).split("\n").slice(0, 3).join("\n")
+                  : "（尚無風向）"}
               </div>
 
-              <div className="mediaCard">
-                <div className="mediaInner">
-                  <div className="storyFrame">
-                    <div className="storyFramePad">
-                      <div className="storyText">{(latestNarrative as any)?.text || "（尚無正文）"}</div>
-
-                      <div className="windMini">
-                        {(latestWind as any)?.text
-                          ? String((latestWind as any).text).split("\n").slice(0, 3).join("\n")
-                          : "（尚無風向）"}
-                      </div>
-
-                      {lastMajor && isLastLog(lastMajor, logs) && (
-                        <div style={{ marginTop: 12 }}>
-                          <div className="windMini" style={{ background: "rgba(255,255,255,.06)" }}>
-                            <b style={{ color: "rgba(234,240,255,.92)" }}>關鍵時刻</b>
-                            <div style={{ marginTop: 10 }}>
-                              {(((lastMajor as any).data?.options || []) as string[]).map((opt: string, i: number) => (
-                                <button
-                                  key={i}
-                                  className="btnPill"
-                                  style={{ width: "100%", marginBottom: 10 }}
-                                  onClick={() => chooseMajor(opt)}
-                                >
-                                  {opt}
-                                </button>
-                              ))}
-                              <button className="btnPill" style={{ width: "100%" }} onClick={() => chooseMajor("我就這樣做。")}>
-                                我就這樣做。
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="castRail">
-                      <div className="castLabel">active member</div>
-
-                      <div
-                        className="castPlayground"
-                        ref={railRef}
-                        style={{
-                          position: "relative",
-                          height: 124,
-                          borderRadius: 20,
-                          border: "1px solid rgba(255,255,255,.10)",
-                          background: "rgba(0,0,0,.18)",
-                          overflow: "hidden",
-                        }}
-                      >
-                        {getRecentCastFromLogs(logs, 6).map((c, i) => {
-                          const baseX = 10 + i * 72;
-                          const baseY = 10;
-                          const pos = bubblePos[c.id] || { x: baseX, y: baseY };
-
-                          return (
-                            <button
-                              key={c.id}
-                              className={`castBubble castBtn ${dragId === c.id ? "dragging" : ""}`}
-                              onPointerDown={(e) => onBubbleDown(c.id, e)}
-                              onClick={() => {
-                                if (Date.now() - lastDragEndTs.current < 220) return;
-                                const t = input ? input + "\n" : "";
-                                const opts = [`找 ${c.label} 深聊`, `跟 ${c.label} 守夜`, `問 ${c.label} 一件事`];
-                                const pick = opts[Math.floor(Math.random() * opts.length)];
-                                setInput(t + pick);
-                              }}
-                              style={
-                                {
-                                  position: "absolute",
-                                  left: `${pos.x}px`,
-                                  top: `${pos.y}px`,
-                                  width: 70,
-                                  background: "transparent",
-                                  border: "none",
-                                  padding: 0,
-                                  touchAction: "none",
-                                  ["--d" as any]: `${(i % 6) * 0.35}s`,
-                                } as React.CSSProperties
-                              }
-                              aria-label={`active member ${c.label}`}
-                            >
-                              <div className="avatar">{c.initial}</div>
-                              <div
-                                className="castName"
-                                style={{
-                                  marginTop: 6,
-                                  fontSize: 12,
-                                  fontWeight: 800,
-                                  color: "rgba(234,240,255,.88)",
-                                  textAlign: "center",
-                                  textShadow: "0 8px 24px rgba(0,0,0,.45)",
-                                }}
-                              >
-                                {c.label}
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
+              {lastMajor && isLastLog(lastMajor, logs) && (
+                <div style={{ marginTop: 12 }}>
+                  <div className="windMini" style={{ background: "rgba(255,255,255,.06)" }}>
+                    <b style={{ color: "rgba(234,240,255,.92)" }}>關鍵時刻</b>
+                    <div style={{ marginTop: 10 }}>
+                      {(((lastMajor as any).data?.options || []) as string[]).map((opt: string, i: number) => (
+                        <button
+                          key={i}
+                          className="btnPill"
+                          style={{ width: "100%", marginBottom: 10 }}
+                          onClick={() => chooseMajor(opt)}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                      <button className="btnPill" style={{ width: "100%" }} onClick={() => chooseMajor("我就這樣做。")}>
+                        我就這樣做。
+                      </button>
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            <div className="actionBar">
-              <div className="actionInner">
-                <textarea
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="我做了什麼（自然語言為主；可選指令：去 交易站 探路）"
-                />
-                <button className="sendBtn" onClick={commitInput}>
-                  送出
-                </button>
-              </div>
+              )}
             </div>
           </div>
-        )}
+
+          {/* castRail：半透明泡泡底座 + 可橫滑/可散佈 */}
+          <div className="castRail">
+            <div className="castLabel">active member</div>
+
+            <div className="castPlayground" ref={railRef}>
+              {/* 1) 橫滑軌道（只提供滑動“感”，不跟拖拽玩法衝突） */}
+              <div className="castScrollLayer" aria-hidden="true">
+                {getRecentCastFromLogs(logs, 6).map((c) => (
+                  <div key={`slot_${c.id}`} className="castSlot" />
+                ))}
+              </div>
+
+              {/* 2) 真正可拖拽泡泡（不動玩法：點一下就是塞 input） */}
+              {getRecentCastFromLogs(logs, 6).map((c, i) => {
+                const baseX = 10 + i * 72;
+                const baseY = 10;
+                const pos = bubblePos[c.id] || { x: baseX, y: baseY };
+
+                return (
+                  <button
+                    key={c.id}
+                    className={`castBubble castBtn ${dragId === c.id ? "dragging" : ""}`}
+                    onPointerDown={(e) => onBubbleDown(c.id, e)}
+                    onClick={() => {
+                      // 避免「剛拖完放開」被當點擊
+                      if (Date.now() - lastDragEndTs.current < 220) return;
+
+                      const t = input ? input + "\n" : "";
+                      const opts = [`找 ${c.label} 深聊`, `跟 ${c.label} 守夜`, `問 ${c.label} 一件事`];
+                      const pick = opts[Math.floor(Math.random() * opts.length)];
+                      setInput(t + pick);
+                    }}
+                    style={
+                      {
+                        left: `${pos.x}px`,
+                        top: `${pos.y}px`,
+                        ["--d" as any]: `${(i % 6) * 0.35}s`,
+                      } as React.CSSProperties
+                    }
+                  >
+                    <div className="avatar">{c.initial}</div>
+                    <div className="castName">{c.label}</div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </div>
+    </div>
+
+    <div className="actionBar">
+      <div className="actionInner">
+        <textarea
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="我做了什麼（自然語言為主；可選指令：去 交易站 探路）"
+        />
+        <button className="sendBtn" onClick={commitInput}>
+          送出
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
       {drawer && <div className="drawerBackdrop" onClick={closeDrawer} aria-hidden="true" />}
       {drawer && (
