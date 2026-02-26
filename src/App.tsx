@@ -320,55 +320,58 @@ export default function App() {
     <div className="app">
       <div className="shell">
         {mode === "cover" && (
-          <div className="bgStage">
-            <div className="topBar">
-              <div className="brand">
-                <div className="brandTitle">Game_PWA</div>
-                <div className="brandSub">末世戀愛生存互動式小說 · 橙光式運作 · IndexedDB 存檔</div>
-              </div>
-              <div className="iconRow">
-                <button className="iconBtn" aria-label="檔案櫃" title="檔案櫃" onClick={() => setDrawer("saves")}>
-                  <IconFolder />
-                </button>
-              </div>
-            </div>
+  <div className="nativeScreen">
+    {/* Top App Bar */}
+    <div className="nativeTopBar">
+      <div className="nativeTopLeft">
+        <div className="nativeAppName">Game_PWA</div>
+        <div className="nativeAppSub">末世戀愛生存互動式小說 · IndexedDB</div>
+      </div>
 
-            <div className="glassCard">
-              <div className="cardPad">
-                <div className="cardTitle">進入世界</div>
-                <div className="cardText">
-                  每段正文後輸入「我做了什麼」，世界會記住。<br />
-                  自然語言為主；可選指令提高解析準度（不強迫）。
-                </div>
+      <div className="nativeTopRight">
+        <button className="nativeIconBtn" aria-label="檔案櫃" title="檔案櫃" onClick={() => setDrawer("saves")}>
+          <IconFolder />
+        </button>
+      </div>
+    </div>
 
-                <div className="btnRow">
-                  <button className="btnPill btnPillPrimary" disabled={!canContinue} onClick={onContinue}>
-                    繼續
-                  </button>
-                  <button className="btnPill" onClick={onNew}>
-                    新開始
-                  </button>
-                  <button className="btnPill" disabled={!canContinue} onClick={onLoadMostRecent}>
-                    讀檔
-                  </button>
-                </div>
+    {/* Main Card */}
+    <div className="nativeMain">
+      <div className="nativeHeroCard">
+        <div className="nativeHeroTitle">進入世界</div>
+        <div className="nativeHeroText">
+          每段正文後輸入「我做了什麼」，世界會記住。{"\n"}
+          自然語言為主；可選指令提高解析準度（不強迫）。
+        </div>
 
-                <div className="badgeRow">
-                  <span className="badge">自然語言為主</span>
-                  <span className="badge">可選指令</span>
-                  <span className="badge">4–7 段關鍵時刻</span>
-                  <span className="badge">關係混合制</span>
-                  <span className="badge">異能世界觀</span>
-                </div>
+        <div className="nativeChips">
+          <span className="nativeChip">自然語言為主</span>
+          <span className="nativeChip">可選指令</span>
+          <span className="nativeChip">4–7 段關鍵時刻</span>
+          <span className="nativeChip">關係混合制</span>
+          <span className="nativeChip">異能世界觀</span>
+        </div>
 
-                <div className="line" />
-                <div className="cardText">
-                  男人 NPC 資料庫：<b>已接入</b>（npc_public / npc_secret 已匯入；只匯入一次）
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        <div className="nativeFootNote">
+          男人 NPC 資料庫：<b>已接入</b>（npc_public / npc_secret 已匯入；只匯入一次）
+        </div>
+      </div>
+    </div>
+
+    {/* Bottom Dock */}
+    <div className="nativeDock">
+      <button className="dockBtn dockPrimary" disabled={!canContinue} onClick={onContinue}>
+        繼續
+      </button>
+      <button className="dockBtn" onClick={onNew}>
+        新開始
+      </button>
+      <button className="dockBtn" disabled={!canContinue} onClick={onLoadMostRecent}>
+        讀檔
+      </button>
+    </div>
+  </div>
+)}
 
         {mode === "setup" && (
           <div className="bgStage">
