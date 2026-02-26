@@ -326,10 +326,6 @@ export async function listNPCPublic(limit = 50) {
 
 // ===== Saves: rename / delete / duplicate =====
 
-function uid(prefix="id"){ 
-  return `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2)}`; 
-}
-
 export async function renameSave(saveId: string, newTitle: string) {
   const title = (newTitle || "").trim();
   if (!title) return;
