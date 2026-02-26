@@ -569,9 +569,15 @@ export default function App() {
                   <button className="btnPill" onClick={genNoSpoil}>
                     幫我生成（不劇透）
                   </button>
-                  <button className="btnPill btnPillPrimary" onClick={startLife}>
-                    開始人生
-                  </button>
+                  <button
+  className="btnPill btnPillPrimary"
+  onClick={() => {
+    setMode("play");           // 先切到 play（立刻有反應）
+    void startLife();          // 背後照樣跑存檔/寫log/開存檔
+  }}
+>
+  開始人生
+</button>
                   <button className="btnPill" onClick={() => setMode("cover")}>
                     回封面
                   </button>
