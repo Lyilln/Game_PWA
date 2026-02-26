@@ -72,9 +72,27 @@ function KeyIcon() {
   );
 }
 
+function IconTheme() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M12 18a6 6 0 1 1 6-6a6 6 0 0 1-6 6Zm0-10a4 4 0 1 0 4 4a4 4 0 0 0-4-4ZM11 2h2v3h-2V2Zm0 19h2v3h-2v-3ZM2 11h3v2H2v-2Zm19 0h3v2h-3v-2ZM4.22 4.22l1.42-1.42L7.76 4.92 6.34 6.34 4.22 4.22Zm12.02 12.02l1.42-1.42 2.12 2.12-1.42 1.42-2.12-2.12ZM17.66 6.34l-1.42-1.42 2.12-2.12 1.42 1.42-2.12 2.12ZM6.34 17.66l-1.42-1.42 2.12-2.12 1.42 1.42-2.12 2.12Z"
+      />
+    </svg>
+  );
+}
+
 export default function App() {
   const [mode, setMode] = useState<Mode>("cover");
   const [drawer, setDrawer] = useState<DrawerKey>(null);
+  const [themeMode, setThemeMode] = useState<"system"|"light"|"dark">("system");
+
+useEffect(() => {
+  const root = document.documentElement;
+  if (themeMode === "system") root.removeAttribute("data-theme");
+  else root.setAttribute("data-theme", themeMode);
+}, [themeMode]);
   const [profileTab, setProfileTab] = useState<
     "base" | "persona" | "panel" | "relations" | "reputation" | "achievements"
   >("base");
@@ -514,6 +532,14 @@ export default function App() {
                   <button className="iconBtn" aria-label="主控面板" title="主控面板" onClick={() => setDrawer("profile")}>
                     <KeyIcon />
                   </button>
+                  <button
+                    className="iconBtn"
+                    aria-label="切換主題"
+                    title="切換主題"
+  onClick={() => setThemeMode(t => t === "system" ? "dark" : t === "dark" ? "light" : "system")}
+>
+  <IconTheme />
+</button>
                   <button className="iconBtn" aria-label="回顧" title="回顧" onClick={() => setDrawer("recap")}>
                     <IconClock />
                   </button>
@@ -530,6 +556,32 @@ export default function App() {
                 <div className="mediaInner">
                   <div className="storyFrame">
                     <div className="storyFramePad">
+                      <div className="storyFrame">
+  <div className="storyFramePad">
+    ...正文/風向/關鍵時刻...
+  </div>
+
+  <div className="castRail">
+    <div className="castLabel">active member</div>
+    <div className="castRow">
+      {getRecentCastFromLogs(logs, 6).map((c) => (
+        <button
+          key={c.id}
+          className="castItem castBtn"
+          onClick={() => {
+            const t = input ? input + "\n" : "";
+            const opts = [`找 ${c.label} 深聊`, `跟 ${c.label} 守夜`, `問 ${c.label} 一件事`];
+            const pick = opts[Math.floor(Math.random() * opts.length)];
+            setInput(t + pick);
+          }}
+        >
+          <div className="avatar">{c.initial}</div>
+          <div>{c.label}</div>
+        </button>
+      ))}
+    </div>
+  </div>
+</div>
                       <div className="storyText">{(latestNarrative as any)?.text || "（尚無正文）"}</div>
 
                       <div className="windMini">
@@ -562,30 +614,6 @@ export default function App() {
                       )}
                     </div>
                   </div>
-
-                  <div className="castCard">
-                    <div className="castLabel">active member</div>
-                    <div className="castRow">
-                      {getRecentCastFromLogs(logs, 6).map((c) => (
-                        <button
-                          key={c.id}
-                          className="castItem castBtn"
-                          onClick={() => {
-                            const t = input ? input + "\n" : "";
-                            const opts = [`找 ${c.label} 深聊`, `跟 ${c.label} 守夜`, `問 ${c.label} 一件事`];
-                            const pick = opts[Math.floor(Math.random() * opts.length)];
-                            setInput(t + pick);
-                          }}
-                        >
-                          <div className="avatar">{c.initial}</div>
-                          <div>{c.label}</div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
 
             <div className="actionBar">
               <div className="actionInner">
