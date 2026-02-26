@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   listSaves,
   createSave,
@@ -101,6 +101,67 @@ useEffect(() => {
   const [curSave, setCurSave] = useState<SaveRow | null>(null);
   const [logs, setLogs] = useState<LogRow[]>([]);
   const [input, setInput] = useState("");
+  // ===== Bubble Cast Drag (UI only) =====
+  const railRef = useRef<HTMLDivElement | null>(null);
+  const [bubblePos, setBubblePos] = useState<Record<string, { x: number; y: number }>>({});
+  const [dragId, setDragId] = useState<string | null>(null);
+  const dragOffset = useRef<{ dx: number; dy: number }>({ dx: 0, dy: 0 });
+
+  function clamp(n: number, a: number, b: number) {
+    return Math.max(a, Math.min(b, n));
+  }
+
+  function onBubbleDown(id: string, e: React.PointerEvent) {
+    const host = railRef.current;
+    if (!host) return;
+
+    const rect = host.getBoundingClientRect();
+    const cur = bubblePos[id] || { x: 10, y: 10 };
+
+    dragOffset.current = {
+      dx: e.clientX - (rect.left + cur.x),
+      dy: e.clientY - (rect.top + cur.y),
+    };
+
+    setDragId(id);
+    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+    e.preventDefault();
+  }
+
+  useEffect(() => {
+    if (!dragId) return;
+
+    function onMove(ev: PointerEvent) {
+      const host = railRef.current;
+      if (!host) return;
+
+      const rect = host.getBoundingClientRect();
+
+      // bubble 本體寬約 72，高約 86（含名字）
+      const BW = 72;
+      const BH = 86;
+
+      const nx = ev.clientX - rect.left - dragOffset.current.dx;
+      const ny = ev.clientY - rect.top - dragOffset.current.dy;
+
+      const x = clamp(nx, 0, rect.width - BW);
+      const y = clamp(ny, 0, rect.height - BH);
+
+      setBubblePos((p) => ({ ...p, [dragId]: { x, y } }));
+    }
+
+    function onUp() {
+      setDragId(null);
+    }
+
+    window.addEventListener("pointermove", onMove, { passive: false });
+    window.addEventListener("pointerup", onUp, { passive: true });
+
+    return () => {
+      window.removeEventListener("pointermove", onMove as any);
+      window.removeEventListener("pointerup", onUp as any);
+    };
+  }, [dragId, bubblePos]);
 
   // Setup sections open
   const [secOpen, setSecOpen] = useState<Record<SecKey, boolean>>({
@@ -193,42 +254,46 @@ useEffect(() => {
     if (!fPrinciples.trim()) setFPrinciples("不欠人情、不賣隊友");
   }
 
-  async function startLife() {
-    const player: any = makeEmptyPlayer();
+    async function startLife() {
+    try {
+      const player: any = makeEmptyPlayer();
 
-    player.name = fName.trim();
-    player.codename = fCodename.trim();
-    player.nickname = fNickname.trim();
-    player.age = fAge === "" ? null : Number(fAge);
-    player.talent = fTalent.trim();
-    player.ability = fAbility.trim();
+      player.name = fName.trim();
+      player.codename = fCodename.trim();
+      player.nickname = fNickname.trim();
+      player.age = fAge === "" ? null : Number(fAge);
+      player.talent = fTalent.trim();
+      player.ability = fAbility.trim();
 
-    player.personalityTags = splitTags(fTags);
-    player.principles = splitTags(fPrinciples);
+      player.personalityTags = splitTags(fTags);
+      player.principles = splitTags(fPrinciples);
 
-    // dynamic placeholders
-    player.identity = "未知身分（系統將更新）";
-    player.currentPersonalityTilt = "尚未形成（系統將更新）";
-    player.reputationTags = [];
-    player.publicOpinion = "尚無風評（系統將更新）";
-    player.achievements = [];
+      player.identity = "未知身分（系統將更新）";
+      player.currentPersonalityTilt = "尚未形成（系統將更新）";
+      player.reputationTags = [];
+      player.publicOpinion = "尚無風評（系統將更新）";
+      player.achievements = [];
 
-    if (!player.panel) player.panel = {};
-    player.panel.overall = 10;
-    player.panel.survival = 10;
-    player.panel.combat = 10;
-    player.panel.strategy = 10;
-    player.panel.charm = 10;
-    player.panel.abilityPower = player.ability ? 10 : 0;
-    player.panel.stress = 0;
+      if (!player.panel) player.panel = {};
+      player.panel.overall = 10;
+      player.panel.survival = 10;
+      player.panel.combat = 10;
+      player.panel.strategy = 10;
+      player.panel.charm = 10;
+      player.panel.abilityPower = player.ability ? 10 : 0;
+      player.panel.stress = 0;
 
-    const save = await createSave("存檔" + (saves.length + 1), player);
-    await refreshSaves();
+      const save = await createSave("存檔" + (saves.length + 1), player);
+      await refreshSaves();
 
-    await appendLog(save.saveId, "narrative", "Day 1：你醒來時，世界像被冷色的灰塵覆蓋。");
-    await appendLog(save.saveId, "wind", generateWindLines().join("\n"));
+      await appendLog(save.saveId, "narrative", "Day 1：你醒來時，世界像被冷色的灰塵覆蓋。");
+      await appendLog(save.saveId, "wind", generateWindLines().join("\n"));
 
-    await openSave(save.saveId, true);
+      await openSave(save.saveId, true);
+    } catch (err: any) {
+      console.error(err);
+      alert("開始人生失敗（資料庫/存檔錯誤）：\n" + String(err?.message || err));
+    }
   }
 
   async function commitInput() {
@@ -623,29 +688,42 @@ useEffect(() => {
             </div>
 
             {/* ✅ castRail：在 storyFramePad 後、storyFrame 結尾前 */}
-            <div className="castRail">
+                        <div className="castRail">
               <div className="castLabel">active member</div>
-              <div className="castRow">
-                {getRecentCastFromLogs(logs, 6).map((c) => (
-                  <button
-                    key={c.id}
-                    className="castItem castBtn"
-                    onClick={() => {
-                      const t = input ? input + "\n" : "";
-                      const opts = [`找 ${c.label} 深聊`, `跟 ${c.label} 守夜`, `問 ${c.label} 一件事`];
-                      const pick = opts[Math.floor(Math.random() * opts.length)];
-                      setInput(t + pick);
-                    }}
-                  >
-                    <div className="avatar">{c.initial}</div>
-                    <div>{c.label}</div>
-                  </button>
-                ))}
+
+              <div className="castPlayground" ref={railRef}>
+                {getRecentCastFromLogs(logs, 6).map((c, i) => {
+                  const baseX = 10 + i * 72;     // 初始排一排
+                  const baseY = 10;              // 初始高度
+                  const pos = bubblePos[c.id] || { x: baseX, y: baseY };
+
+                  return (
+                    <button
+                      key={c.id}
+                      className={`castBubble castBtn ${dragId === c.id ? "dragging" : ""}`}
+                      onPointerDown={(e) => onBubbleDown(c.id, e)}
+                      onClick={() => {
+                        // 拖拽放開後仍可點（不改玩法）
+                        const t = input ? input + "\n" : "";
+                        const opts = [`找 ${c.label} 深聊`, `跟 ${c.label} 守夜`, `問 ${c.label} 一件事`];
+                        const pick = opts[Math.floor(Math.random() * opts.length)];
+                        setInput(t + pick);
+                      }}
+                      style={
+                        {
+                          left: `${pos.x}px`,
+                          top: `${pos.y}px`,
+                          ["--d" as any]: `${(i % 6) * 0.35}s`,
+                        } as React.CSSProperties
+                      }
+                    >
+                      <div className="avatar">{c.initial}</div>
+                      <div className="castName">{c.label}</div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
-          </div>
-        </div>
-      </div>
 
     </div>
 
