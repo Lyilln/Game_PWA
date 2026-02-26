@@ -902,6 +902,7 @@ export default function App() {
                   </div>
                 </>
               )}
+             </div>
 
               {drawer === "recap" && (
                 <>
