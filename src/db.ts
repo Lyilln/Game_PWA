@@ -116,8 +116,8 @@ export function openDB(): Promise<IDBDatabase> {
       if (!db.objectStoreNames.contains(STORES.world)) {
         db.createObjectStore(STORES.world, { keyPath: "saveId" });
       }
-    };
 
+      // ✅ 這兩段一定要在 onupgradeneeded 裡（不然 db 會是 undefined）
       if (!db.objectStoreNames.contains(STORES.npc_public)) {
         const os = db.createObjectStore(STORES.npc_public, { keyPath: "id" });
         os.createIndex("by_archetype", "archetypeKey", { unique: false });
@@ -126,6 +126,7 @@ export function openDB(): Promise<IDBDatabase> {
       if (!db.objectStoreNames.contains(STORES.npc_secret)) {
         db.createObjectStore(STORES.npc_secret, { keyPath: "id" });
       }
+    };
 
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
