@@ -587,8 +587,8 @@ export default function App() {
           </div>
         )}
 
-        /* 刪除：你現在 play 的 mediaCard/storyFrame/castRail 那整段 */
-/* 貼上：以下「play 的卡片區塊」完整替換（只替換 JSX 內那一塊，不動玩法函式） */
+        {/* 刪除：你現在 play 的 mediaCard/storyFrame/castRail 那整段 */}
+{/* 貼上：以下「play 的卡片區塊」完整替換（只替換 JSX 內那一塊，不動玩法函式） */}
 
 {mode === "play" && curSave && (
   <div className="playStage">
