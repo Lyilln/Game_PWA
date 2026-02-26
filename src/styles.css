@@ -601,3 +601,146 @@ textarea{ min-height: 84px; resize: vertical; }
   border: none;
   padding: 0;
 }
+
+/* ===== Native App Cover (iOS-like) ===== */
+.nativeScreen{
+  position: relative;
+  border-radius: var(--r-xl);
+  border: 1px solid rgba(255,255,255,.10);
+  overflow: hidden;
+  min-height: 86svh;
+  background:
+    radial-gradient(900px 650px at 20% 15%, rgba(173,121,255,.18), transparent 58%),
+    radial-gradient(900px 650px at 80% 25%, rgba(122,162,255,.18), transparent 60%),
+    radial-gradient(900px 650px at 55% 90%, rgba(73,255,224,.10), transparent 62%),
+    linear-gradient(180deg, rgba(0,0,0,.34), rgba(0,0,0,.60));
+}
+
+.nativeTopBar{
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding: 14px 14px 12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+
+  background: rgba(10,12,18,.55);
+  border-bottom: 1px solid rgba(255,255,255,.10);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.nativeTopLeft{ display:flex; flex-direction:column; gap:2px; }
+.nativeAppName{
+  font-size: 18px;
+  font-weight: 950;
+  letter-spacing:.4px;
+}
+.nativeAppSub{
+  font-size: 12px;
+  color: rgba(234,240,255,.70);
+}
+
+.nativeIconBtn{
+  height: 40px;
+  width: 40px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 14px 40px rgba(0,0,0,.35);
+  display:grid;
+  place-items:center;
+  color: rgba(234,240,255,.88);
+}
+
+.nativeMain{
+  padding: 14px 14px 120px; /* 底部留給 dock */
+}
+
+.nativeHeroCard{
+  border-radius: 30px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.08);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 30px 90px rgba(0,0,0,.45);
+  padding: 18px 18px 16px;
+}
+
+.nativeHeroTitle{
+  font-size: 20px;
+  font-weight: 950;
+  letter-spacing:.2px;
+  margin-bottom: 10px;
+}
+.nativeHeroText{
+  white-space: pre-wrap;
+  color: rgba(234,240,255,.78);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.nativeChips{
+  margin-top: 14px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+.nativeChip{
+  display:inline-flex;
+  align-items:center;
+  padding: 9px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(0,0,0,.26);
+  color: rgba(234,240,255,.78);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.nativeFootNote{
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,.10);
+  color: rgba(234,240,255,.70);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.nativeDock{
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  padding: 12px 14px 14px;
+  display:flex;
+  gap:10px;
+  justify-content:space-between;
+
+  background: rgba(10,12,18,.78);
+  border-top: 1px solid rgba(255,255,255,.10);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.dockBtn{
+  flex:1;
+  height: 48px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  color: rgba(234,240,255,.90);
+  font-weight: 900;
+}
+
+.dockPrimary{
+  border: 1px solid rgba(255,255,255,.10);
+  background: linear-gradient(90deg, rgba(173,121,255,.90), rgba(122,162,255,.90));
+  color: rgba(7,10,16,.92);
+  box-shadow:
+    0 18px 60px rgba(122,162,255,.18),
+    0 18px 60px rgba(173,121,255,.15);
+}
